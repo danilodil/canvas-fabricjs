@@ -1,9 +1,10 @@
-import logo from './logo.svg';
+import Editor from "./views/Editor";
+import React from "react";
 
 function App() {
   return (
     <div className="App">
-      
+      <Editor />
     </div>
   );
 }
