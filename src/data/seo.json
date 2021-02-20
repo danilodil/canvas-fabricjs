@@ -1,0 +1,11 @@
+{
+  "/": {
+    "title": "Moodboard App",
+    "meta": [
+      { "name": "description", "content": "Moodboard App" },
+      { "property": "og:title", "content": "Moodboard App" },
+      { "property": "og:description", "content": "Moodboard App"},
+      { "property": "og:image", "content": "logo-thumb.png" }
+    ]
+  }
+}
