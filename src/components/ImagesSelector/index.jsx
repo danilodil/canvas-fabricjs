@@ -10,7 +10,7 @@ const ImagesSelector = ({ children, onSelect, data }) => {
         <StyledImagesSelector>
           {data.map((img, i) => (
             <StyledImage key={`si-${i}`} onClick={()=>onSelect(img.name)}>
-              <img src={`../assets/img/${img.name}`} alt="" />
+              <img draggable={true} src={`../assets/img/${img.name}`} alt="" />
             </StyledImage>
           ))}
         </StyledImagesSelector>
