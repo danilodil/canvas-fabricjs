@@ -10,6 +10,7 @@ export const StyledSidebar = styled.div`
   top: 0;
   transform: ${({isActive}) => isActive ? `translateX(0)` : `translateX(100%)`};
   transition: transform ${({ theme }) => theme.transitions.transition} ${({ theme }) => theme.transitions.transitionTiming};
+  z-index: 5;
 
   @media (max-width: ${responsive.md}) {
     width: 100vw;

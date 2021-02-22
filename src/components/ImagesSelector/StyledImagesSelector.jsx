@@ -22,6 +22,10 @@ export const StyledImage = styled.div`
   border: 1px solid transparent;
   transition: border ${({theme}) => theme.transitions.transition} ease;
 
+  &.draging {
+    opacity: 0.5;
+  }
+
   &:after{
     content: '';
     width: 100%;

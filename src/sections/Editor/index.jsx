@@ -21,6 +21,8 @@ const Editor = ({ data }) => {
   const canvasRef = useRef(null);
   const lang = languages[appConfig.lang];
   const [isDrawing, setIsDrawing] = useState(false);
+  const [isDragOverCanvas, setIsDragOverCanvas] = useState(false);
+  const dragedImage = useRef(null);
 
   useEffect(() => {
     setCanvas(initCanvas());
@@ -45,9 +47,10 @@ const Editor = ({ data }) => {
       autoSave.save();
     });
 
-    canvas.on('drop', (e) => {
-      console.log(e)
-    });
+    canvas.on('drop', onDrop);
+    canvas.on('dragenter', () => setIsDragOverCanvas(true))
+    canvas.on('dragleave', () => setIsDragOverCanvas(false));
+
   }
 
   const initCanvas = () => {
@@ -81,6 +84,29 @@ const Editor = ({ data }) => {
     autoSave.save();
   }
 
+  const onDrop = (e) => {
+
+    setIsDragOverCanvas(false);
+
+    if (e.stopPropagation) {
+      e.stopPropagation();
+    }
+
+    if (dragedImage.current) {
+
+      const newImage = new fabric.Image(dragedImage.current, {
+        left: e.e.layerX,
+        top: e.e.layerY
+      });
+
+      newImage.scaleToWidth(400);
+
+      canvas.add(newImage);
+    }
+
+    return false;
+  }
+
   const addGif = async (e) => {
     const gif = await fabricGif(`../assets/img/${e}`, 200, 200);
     gif.set({ top: 50, left: 50 });
@@ -95,7 +121,7 @@ const Editor = ({ data }) => {
 
   const addImg = (e) => {
     fabric.Image.fromURL(`../assets/img/${e}`, (img) => {
-      //const configuredImg = img.set({ left: 0, top: 0 ,width:150,height:150});
+      img.scaleToWidth(400);
       canvas.add(img);
       onAdded();
     });
@@ -106,7 +132,10 @@ const Editor = ({ data }) => {
   }
 
   const getSelection = () => {
-    return canvasRef.current.getActiveObject() == null ? canvasRef.current.getActiveGroup() : canvasRef.current.getActiveObject()
+    const active = canvasRef.current.getActiveObjects();
+    if (active.length) {
+      return canvasRef.current.getActiveObject() == null ? canvasRef.current.getActiveGroup() : canvasRef.current.getActiveObject()
+    }
   }
 
   const deleteObject = () => {
@@ -115,7 +144,7 @@ const Editor = ({ data }) => {
     if (activeObject) {
       if (activeObject._objects) {
         if (activeObject.type == "group") {
-          const objectsInGroup = canvasRef.current.getActiveObjects();;
+          const objectsInGroup = canvasRef.current.getActiveObjects();
           canvasRef.current.discardActiveObject();
           canvasRef.current.remove(...objectsInGroup);
         } else {
@@ -208,10 +237,18 @@ const Editor = ({ data }) => {
     }
   }
 
+  const onImageStartDrag = (img) => {
+    dragedImage.current = img;
+  }
+
+  const onImageStopDrag = () => {
+    dragedImage.current = null;
+  }
+
   return (
     <Layout>
       <StyledEditor>
-        <Canvas>
+        <Canvas className={`${isDragOverCanvas ? "over" : ""}`}>
           <canvas id="canvas" />
         </Canvas>
         <Sidebar isActive={true}>
@@ -247,7 +284,7 @@ const Editor = ({ data }) => {
                 <Icon variant="select-all" />
               </Button>
             </TabActions>
-            <ImagesSelector data={data.images} onSelect={onSelect} />
+            <ImagesSelector data={data.images} onSelect={onSelect} onImageStartDrag={onImageStartDrag} onImageStopDrag={onImageStopDrag} />
           </Tab>
         </Sidebar>
       </StyledEditor>

@@ -1,10 +1,12 @@
 import React from "react";
 import { StyledCanvas } from "./StyledCanvas";
 
-const Canvas = ({ children }) => {
+const Canvas = (props) => {
+
+  const {children} = props;
 
   return (
-    <StyledCanvas>
+    <StyledCanvas {...props}>
       {children}
     </StyledCanvas>
   );
