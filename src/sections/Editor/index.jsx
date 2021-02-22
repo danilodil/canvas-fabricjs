@@ -10,10 +10,10 @@ import ImagesSelector from "../../components/ImagesSelector";
 import { getExt } from "../../utils";
 import { fabricGif } from "../../utils/plugins/fabricGif";
 import 'fabric-history';
+import autoSave from "../../plugins/autosave";
 
 const Editor = ({ data }) => {
 
-  const currentCanvas = useRef([])
   const [canvas, setCanvas] = useState('');
   const canvasRef = useRef(null);
 
@@ -23,6 +23,15 @@ const Editor = ({ data }) => {
 
     return () => window.removeEventListener('resize', resizeCanvas, false);
   }, []);
+
+  useEffect(() => {
+    if(canvas) init();
+  }, [canvas]);
+
+  const init = () => {
+    autoSave.init(canvas);
+    autoSave.getData();
+  }
 
   const initCanvas = () => {
     canvasRef.current = new fabric.Canvas('canvas', {
@@ -37,13 +46,6 @@ const Editor = ({ data }) => {
     canvasRef.current.setHeight(window.innerHeight);
     canvasRef.current.setWidth(window.innerWidth);
     canvasRef.current.renderAll();
-  }
-
-  const getData = (savehistory) => {
-    if (savehistory === true) {
-      const json = JSON.stringify(canvas);
-      currentCanvas.current.push(json);
-    }
   }
 
   const onUndo = () => {
@@ -69,7 +71,6 @@ const Editor = ({ data }) => {
     fabric.Image.fromURL(`../assets/img/${e}`, (img) => {
       //const configuredImg = img.set({ left: 0, top: 0 ,width:150,height:150});
       canvas.add(img);
-      updateModifications(true);
     });
   }
 
