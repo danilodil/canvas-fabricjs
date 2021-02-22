@@ -25,12 +25,17 @@ const Editor = ({ data }) => {
   }, []);
 
   useEffect(() => {
-    if(canvas) init();
+    if (canvas) init();
   }, [canvas]);
 
   const init = () => {
     autoSave.init(canvas);
     autoSave.getData();
+
+    canvas.on('object:modified', () => {
+      autoSave.save();
+    });
+
   }
 
   const initCanvas = () => {
@@ -56,10 +61,15 @@ const Editor = ({ data }) => {
     canvas.redo()
   }
 
+  const onAdded = () => {
+    autoSave.save();
+  }
+
   const addGif = async (e) => {
     const gif = await fabricGif(`../assets/img/${e}`, 200, 200);
     gif.set({ top: 50, left: 50 });
     canvas.add(gif);
+    onAdded();
 
     fabric?.util.requestAnimFrame(render = () => {
       canvas.renderAll();
@@ -71,6 +81,7 @@ const Editor = ({ data }) => {
     fabric.Image.fromURL(`../assets/img/${e}`, (img) => {
       //const configuredImg = img.set({ left: 0, top: 0 ,width:150,height:150});
       canvas.add(img);
+      onAdded();
     });
   }
 

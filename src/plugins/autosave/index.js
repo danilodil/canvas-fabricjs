@@ -4,16 +4,20 @@ const autoSave = {
   interval: 5000,
   currentCanvas: null,
   canvas: null,
+  autoSave: false,
 
-  init(canv, int) {
+  init(canv, auto, int) {
 
     if (int) this.interval = int;
     if (canv) this.canvas = canv;
+    if (auto) this.autoSave = auto;
 
-    this.timer = setInterval(() => {
-      this.currentCanvas = JSON.stringify(this.canvas);
-      localStorage.setItem('canvas', this.currentCanvas);
-    }, this.interval)
+    if(auto) {
+      this.timer = setInterval(() => {
+        this.currentCanvas = JSON.stringify(this.canvas);
+        localStorage.setItem('canvas', this.currentCanvas);
+      }, this.interval)
+    }
   },
 
   destroy() {
@@ -25,6 +29,14 @@ const autoSave = {
     this.canvas.loadFromJSON(localStorage.getItem('canvas'), () => {
       this.canvas.renderAll();
     });
+  },
+
+  save() {
+    localStorage.setItem('canvas', JSON.stringify(this.canvas));
+  },
+
+  clear() {
+    localStorage.setItem('canvas', []);
   }
 }
 
