@@ -114,14 +114,23 @@ const Editor = ({ data }) => {
 
     if (activeObject) {
       if (activeObject._objects) {
-        const objectsInGroup = activeObject.getObjects();
-        objectsInGroup.forEach((object) => {
-          canvasRef.current.remove(object);
-        });
+        if (activeObject.type == "group") {
+          const objectsInGroup = canvasRef.current.getActiveObjects();;
+          canvasRef.current.discardActiveObject();
+          canvasRef.current.remove(...objectsInGroup);
+        } else {
+          const objectsInGroup = activeObject.getObjects();
+          canvasRef.current.discardActiveObject();
+          objectsInGroup.forEach((object) => {
+            canvasRef.current.remove(object);
+          });
+        }
       } else {
         canvasRef.current.remove(activeObject);
       }
     }
+
+    autoSave.save();
   }
 
   const onHorizontalFlip = () => {
@@ -132,7 +141,6 @@ const Editor = ({ data }) => {
     }
 
     canvas.fire('object:modified');
-
     canvas.renderAll();
   }
 
