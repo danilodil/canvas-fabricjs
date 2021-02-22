@@ -1,5 +1,5 @@
 import styled from 'styled-components';
-import {ui} from "../../configs/appConfig";
+import {ui, responsive} from "../../configs/appConfig";
 
 export const StyledSidebar = styled.div`
   width: ${ui.sidebarWidth};
@@ -10,6 +10,11 @@ export const StyledSidebar = styled.div`
   top: 0;
   transform: ${({isActive}) => isActive ? `translateX(0)` : `translateX(100%)`};
   transition: transform ${({ theme }) => theme.transitions.transition} ${({ theme }) => theme.transitions.transitionTiming};
+
+  @media (max-width: ${responsive.md}) {
+    width: 100vw;
+    height: 100vh;
+  }
 `
 
 export const StyledSidebarClose = styled.div`
@@ -52,8 +57,10 @@ export const StyledSidebarShow = styled.div`
   transition: opacity ${({ theme }) => theme.transitions.transition} ease, transform ${({ theme }) => theme.transitions.transition} ${({ theme }) => theme.transitions.transitionTiming};
 
   &:hover {
-    opacity: 1;
+    opacity: ${({isActive}) => isActive ? `1` : `0`};
   }
+
+
 `
 
 
