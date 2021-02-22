@@ -1,6 +1,7 @@
 const appConfig = {
   projectName: "Moodboard",
   lang: "eng",
+  initialImageSize: 400,
 
   seo: {
     title: "Moodboard App"

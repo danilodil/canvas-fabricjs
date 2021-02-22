@@ -12,10 +12,13 @@ const autoSave = {
     if (canv) this.canvas = canv;
     if (auto) this.autoSave = auto;
 
-    if(auto) {
+    if (auto) {
       this.timer = setInterval(() => {
-        this.currentCanvas = JSON.stringify(this.canvas);
-        localStorage.setItem('canvas', this.currentCanvas);
+        try {
+          localStorage.setItem('canvas', JSON.stringify(this.canvas));
+        } catch (e) {
+          console.log(e)
+        }
       }, this.interval)
     }
   },
@@ -32,7 +35,11 @@ const autoSave = {
   },
 
   save() {
-    localStorage.setItem('canvas', JSON.stringify(this.canvas));
+    try {
+      localStorage.setItem('canvas', JSON.stringify(this.canvas));
+    } catch (e) {
+      console.log(e)
+    }
   },
 
   clear() {

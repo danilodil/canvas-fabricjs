@@ -23,15 +23,20 @@ const Editor = ({ data }) => {
   const [isDrawing, setIsDrawing] = useState(false);
   const [isDragOverCanvas, setIsDragOverCanvas] = useState(false);
   const dragedImage = useRef(null);
+  const clone = useRef(null);
 
   useEffect(() => {
     setCanvas(initCanvas());
     window.addEventListener('resize', resizeCanvas, false);
     document.addEventListener('keyup', onKeyUp, false);
+    document.addEventListener('copy', onCopy);
+    document.addEventListener('paste', onPaste);
 
     return () => {
       window.removeEventListener('resize', resizeCanvas, false);
       document.removeEventListener('keyup', onKeyUp, false);
+      document.removeEventListener('copy', onCopy, false);
+      document.removeEventListener('paste', onPaste, false);
     }
   }, []);
 
@@ -102,8 +107,8 @@ const Editor = ({ data }) => {
   }
 
   const addGif = async (e, drag) => {
-    const gif = await fabricGif(drag ? e.src : `../assets/img/${e}`, 200, 200);
-    gif.set({ top: drag ? drag.layerY : 50, left: drag ? drag.layerX : 50 });
+    const gif = await fabricGif(drag ? e.src : `../assets/img/${e}`, appConfig.initialImageSize / 2, appConfig.initialImageSize / 2);
+    gif.set({ top: drag ? drag.layerY - appConfig.initialImageSize / 4 : 50, left: drag ? drag.layerX - appConfig.initialImageSize / 4 : 50 });
     canvas.add(gif);
     onAdded();
 
@@ -116,17 +121,17 @@ const Editor = ({ data }) => {
   const addImg = (e, drag) => {
     if (drag) {
       const newImage = new fabric.Image(dragedImage.current, {
-        left: drag.layerX,
-        top: drag.layerY
+        left: drag.layerX - appConfig.initialImageSize / 2,
+        top: drag.layerY - appConfig.initialImageSize / 2
       });
 
-      newImage.scaleToWidth(400);
+      newImage.scaleToWidth(appConfig.initialImageSize);
       canvas.add(newImage);
       onAdded();
 
     } else {
       fabric.Image.fromURL(`../assets/img/${e}`, (img) => {
-        img.scaleToWidth(400);
+        img.scaleToWidth(appConfig.initialImageSize);
         canvas.add(img);
         onAdded();
       });
@@ -250,6 +255,36 @@ const Editor = ({ data }) => {
 
   const onImageStopDrag = () => {
     dragedImage.current = null;
+  }
+
+  const onCopy = () => {
+    canvasRef.current.getActiveObject().clone((cloned) => {
+      clone.current = cloned;
+    });
+  }
+
+  const onPaste = () => {
+    clone.current.clone(function (clonedObj) {
+      canvasRef.current.discardActiveObject();
+      clonedObj.set({
+        left: clonedObj.left + 10,
+        top: clonedObj.top + 10,
+        evented: true,
+      });
+      if (clonedObj.type === 'activeSelection') {
+        clonedObj.canvas = canvasRef.current;
+        clonedObj.forEachObject(function (obj) {
+          canvasRef.current.add(obj);
+        });
+        clonedObj.setCoords();
+      } else {
+        canvasRef.current.add(clonedObj);
+      }
+      clone.current.top += 10;
+      clone.current.left += 10;
+      canvasRef.current.setActiveObject(clonedObj);
+      canvasRef.current.requestRenderAll();
+    });
   }
 
   return (
