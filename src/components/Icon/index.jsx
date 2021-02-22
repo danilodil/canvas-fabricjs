@@ -81,8 +81,34 @@ const Icon = ({ variant, className }) => {
       case "cursor":
         return <svg className={`app-icon ${className ? className : ""}`} xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="347.5px" height="512px" viewBox="0 0 347.5 512">
           <g>
-            <path d="M347.5,319.3L0.2,0L0,471.7l105.4-100.8L167.3,512l96.6-42.4l-61.9-141.1L347.5,319.3z M224.3,454.2l-41.6,18.3l-67.1-152.9L30,401.5l0.2-333.2l245.3,225.5l-118.2,7.5L224.3,454.2z"/>
+            <path d="M347.5,319.3L0.2,0L0,471.7l105.4-100.8L167.3,512l96.6-42.4l-61.9-141.1L347.5,319.3z M224.3,454.2l-41.6,18.3l-67.1-152.9L30,401.5l0.2-333.2l245.3,225.5l-118.2,7.5L224.3,454.2z" />
           </g>
+        </svg>
+
+      case "group":
+        return <svg className={`app-icon ${className ? className : ""}`} xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="512px" height="384px" viewBox="0 0 512 384">
+          <path d="M231.3,68.2h64v64h-64V68.2z" />
+          <path d="M96,181h107v107H96V181z" />
+          <path d="M307,192h116.5v116.5H307V192z" />
+          <path d="M32,128H0V16C0,7.2,7.2,0,16,0h176v32H32L32,128z" />
+          <path d="M192,384H16c-8.8,0-16-7.2-16-16V256h32v96h160V384z" />
+          <path d="M496,384H320v-32h160v-96h32v112C512,376.8,504.8,384,496,384z" />
+          <path d="M512,128h-32V32H320V0h176c8.8,0,16,7.2,16,16V128z" />
+        </svg>
+
+      case "ungroup":
+        return <svg className={`app-icon ${className ? className : ""}`} xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="327.5px" height="240.3px" viewBox="0 0 327.5 240.3">
+          <path d="M135.3,0h64v64h-64V0z" />
+          <path d="M0,112.8h107v107H0V112.8z" />
+          <path d="M211,123.8h116.5v116.5H211V123.8z" />
+        </svg>
+
+      case "select-all":
+        return <svg className={`app-icon ${className ? className : ""}`} xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="494px" height="372px" viewBox="0 0 494 372">
+          <path d="M220.3,62.2h64v64h-64V62.2z" />
+          <path d="M85,175h107v107H85V175z" />
+          <path d="M296,186h116.5v116.5H296V186z" />
+          <path d="M494,372H0V0h494V372z M22,350h450V22H22V350z" />
         </svg>
     }
   }

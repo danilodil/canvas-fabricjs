@@ -11,11 +11,12 @@ export const StyledTabActions = styled.div`
   display: flex;
   align-items: center;
   border-bottom: 1px solid ${({ theme }) => theme.colors.borderColor};
-  padding-bottom: 1rem;
   margin-bottom: 1rem;
+  flex-wrap: wrap;
 
   >* {
     margin-right: 1rem;
+    margin-bottom: 1rem;
   }
   
 `

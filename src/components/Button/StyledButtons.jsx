@@ -37,4 +37,8 @@ export const StyledButton = styled.button`
     background-color: transparent;
     box-shadow: ${({ theme }) => theme.button.shadowHover};
   }
+
+  .app-icon {
+    font-size: 1rem;
+  }
 `

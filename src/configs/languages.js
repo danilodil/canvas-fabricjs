@@ -6,6 +6,9 @@ const languages = {
     Horizontalflip: "Horizontal flip",
     Verticalflip: "Vertical flip",
     Changemode: "Change mode",
+    Group: "Group",
+    Ungroup: "Ungroup",
+    SelectAll: "Select All",
   }
 }
 

@@ -13,7 +13,7 @@ import 'fabric-history';
 import autoSave from "../../plugins/autosave";
 import languages from "../../configs/languages";
 import appConfig from "../../configs/appConfig";
-import {Separator} from "../../components/Ui";
+import { Separator } from "../../components/Ui";
 
 const Editor = ({ data }) => {
 
@@ -153,6 +153,37 @@ const Editor = ({ data }) => {
     setIsDrawing(!isDrawing);
   }
 
+  const onGroup = () => {
+    if (!canvas.getActiveObject()) {
+      return;
+    }
+    if (canvas.getActiveObject().type !== 'activeSelection') {
+      return;
+    }
+    canvas.getActiveObject().toGroup();
+    canvas.requestRenderAll();
+  }
+
+  const onUnGroup = () => {
+    if (!canvas.getActiveObject()) {
+      return;
+    }
+    if (canvas.getActiveObject().type !== 'group') {
+      return;
+    }
+    canvas.getActiveObject().toActiveSelection();
+    canvas.requestRenderAll();
+  }
+
+  const onSelectAll = () => {
+    canvas.discardActiveObject();
+    var sel = new fabric.ActiveSelection(canvas.getObjects(), {
+      canvas: canvas,
+    });
+    canvas.setActiveObject(sel);
+    canvas.requestRenderAll();
+  }
+
   const onSelect = (e) => {
 
     const ext = getExt(e);
@@ -177,7 +208,7 @@ const Editor = ({ data }) => {
         </Canvas>
         <Sidebar isActive={true}>
           <Tab>
-          <TabActions>
+            <TabActions>
               <Button title={lang.Changemode} variant={`${!isDrawing ? "success-light" : "light"}`} onClick={onChangeMode}>
                 <Icon variant="cursor" />
               </Button>
@@ -197,6 +228,15 @@ const Editor = ({ data }) => {
               </Button>
               <Button title={lang.Horizontalflip} variant="light" onClick={onHorizontalFlip}>
                 <Icon variant="vertical" />
+              </Button>
+              <Button title={lang.Group} variant="light" onClick={onGroup}>
+                <Icon variant="group" />
+              </Button>
+              <Button title={lang.Ungroup} variant="light" onClick={onUnGroup}>
+                <Icon variant="ungroup" />
+              </Button>
+              <Button title={lang.SelectAll} variant="light" onClick={onSelectAll}>
+                <Icon variant="select-all" />
               </Button>
             </TabActions>
             <ImagesSelector data={data.images} onSelect={onSelect} />
