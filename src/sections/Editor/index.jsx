@@ -3,7 +3,6 @@ import { StyledEditor } from "./StyledEditor"
 import Layout from "../../components/Layout"
 import Sidebar from "../../components/Sidebar"
 import Canvas from "../../components/Canvas"
-import { FabricJSCanvas, useFabricJSEditor } from 'fabricjs-react'
 import { Tab, TabActions } from "../../components/Tabs";
 import Button from "../../components/Button";
 import Icon from "../../components/Icon";
@@ -14,58 +13,54 @@ import 'fabric-history';
 
 const Editor = ({ data }) => {
 
-  const { editor, onReady } = useFabricJSEditor();
-  const initialized = useRef(false)
-  const history = useRef([])
-  const mods = useRef(0)
+  const currentCanvas = useRef([])
+  const [canvas, setCanvas] = useState('');
+  const canvasRef = useRef(null);
 
   useEffect(() => {
-    if (editor && !initialized.current) {
-      editor.canvas.on(
-        'object:modified', () => {
-          updateModifications(true);
-        });
+    setCanvas(initCanvas());
+    window.addEventListener('resize', resizeCanvas, false);
 
-      initialized.current = true;
-    }
-  }, [editor])
+    return () => window.removeEventListener('resize', resizeCanvas, false);
+  }, []);
 
-  const updateModifications = (savehistory) => {
+  const initCanvas = () => {
+    canvasRef.current = new fabric.Canvas('canvas', {
+      height: window.innerHeight,
+      width: window.innerWidth,
+    })
+
+    return canvasRef.current;
+  }
+
+  const resizeCanvas = () => {
+    canvasRef.current.setHeight(window.innerHeight);
+    canvasRef.current.setWidth(window.innerWidth);
+    canvasRef.current.renderAll();
+  }
+
+  const getData = (savehistory) => {
     if (savehistory === true) {
-      const json = JSON.stringify(editor.canvas);
-      history.current.push(json);
+      const json = JSON.stringify(canvas);
+      currentCanvas.current.push(json);
     }
   }
 
   const onUndo = () => {
-    console.log(history.current)
-    if (mods.current < history.current.length) {
-      editor.canvas.clear().renderAll();
-      editor.canvas.loadFromJSON(history.current[history.current.length - 1 - mods.current - 1], () => {
-        editor.canvas.renderAll();
-        mods.current += 1;
-      });
-    }
+    canvas.undo()
   }
+
   const onRedo = () => {
-    if (mods.current > 0) {
-      editor.canvas.clear().renderAll();
-      editor.canvas.loadFromJSON(history.current[history.current.length - 1 - mods.current + 1], ()=>{
-        editor.canvas.renderAll();
-      });
-      
-      mods.current -= 1;
-    }
+    canvas.redo()
   }
 
   const addGif = async (e) => {
     const gif = await fabricGif(`../assets/img/${e}`, 200, 200);
     gif.set({ top: 50, left: 50 });
-    editor.canvas.add(gif);
-    updateModifications(true);
+    canvas.add(gif);
 
     fabric?.util.requestAnimFrame(render = () => {
-      editor?.canvas.renderAll();
+      canvas.renderAll();
       fabric.util.requestAnimFrame(render);
     });
   }
@@ -73,7 +68,7 @@ const Editor = ({ data }) => {
   const addImg = (e) => {
     fabric.Image.fromURL(`../assets/img/${e}`, (img) => {
       //const configuredImg = img.set({ left: 0, top: 0 ,width:150,height:150});
-      editor.canvas.add(img);
+      canvas.add(img);
       updateModifications(true);
     });
   }
@@ -98,7 +93,7 @@ const Editor = ({ data }) => {
     <Layout>
       <StyledEditor>
         <Canvas>
-          <FabricJSCanvas className="canvas" isDrawingMode onReady={onReady} />
+          <canvas id="canvas" />
         </Canvas>
         <Sidebar isActive={true}>
           <Tab>
