@@ -94,22 +94,16 @@ const Editor = ({ data }) => {
 
     if (dragedImage.current) {
 
-      const newImage = new fabric.Image(dragedImage.current, {
-        left: e.e.layerX,
-        top: e.e.layerY
-      });
+      onSelect(dragedImage.current, e.e)
 
-      newImage.scaleToWidth(400);
-
-      canvas.add(newImage);
     }
 
     return false;
   }
 
-  const addGif = async (e) => {
-    const gif = await fabricGif(`../assets/img/${e}`, 200, 200);
-    gif.set({ top: 50, left: 50 });
+  const addGif = async (e, drag) => {
+    const gif = await fabricGif(drag ? e.src : `../assets/img/${e}`, 200, 200);
+    gif.set({ top: drag ? drag.layerY : 50, left: drag ? drag.layerX : 50 });
     canvas.add(gif);
     onAdded();
 
@@ -119,12 +113,25 @@ const Editor = ({ data }) => {
     });
   }
 
-  const addImg = (e) => {
-    fabric.Image.fromURL(`../assets/img/${e}`, (img) => {
-      img.scaleToWidth(400);
-      canvas.add(img);
+  const addImg = (e, drag) => {
+    if (drag) {
+      const newImage = new fabric.Image(dragedImage.current, {
+        left: drag.layerX,
+        top: drag.layerY
+      });
+
+      newImage.scaleToWidth(400);
+      canvas.add(newImage);
       onAdded();
-    });
+
+    } else {
+      fabric.Image.fromURL(`../assets/img/${e}`, (img) => {
+        img.scaleToWidth(400);
+        canvas.add(img);
+        onAdded();
+      });
+    }
+
   }
 
   const onClear = () => {
@@ -221,18 +228,18 @@ const Editor = ({ data }) => {
     canvas.requestRenderAll();
   }
 
-  const onSelect = (e) => {
+  const onSelect = (e, drag) => {
 
-    const ext = getExt(e);
+    const ext = drag ? getExt(e.src) : getExt(e);
 
     switch (ext) {
       case "gif":
-        addGif(e);
+        addGif(e, drag);
         break;
       case "jpg":
       case "jpeg":
       default:
-        addImg(e);
+        addImg(e, drag);
         break;
     }
   }
