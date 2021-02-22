@@ -11,17 +11,26 @@ import { getExt } from "../../utils";
 import { fabricGif } from "../../utils/plugins/fabricGif";
 import 'fabric-history';
 import autoSave from "../../plugins/autosave";
+import languages from "../../configs/languages";
+import appConfig from "../../configs/appConfig";
+import {Separator} from "../../components/Ui";
 
 const Editor = ({ data }) => {
 
   const [canvas, setCanvas] = useState('');
   const canvasRef = useRef(null);
+  const lang = languages[appConfig.lang];
+  const [isDrawing, setIsDrawing] = useState(false);
 
   useEffect(() => {
     setCanvas(initCanvas());
     window.addEventListener('resize', resizeCanvas, false);
+    document.addEventListener('keyup', onKeyUp, false);
 
-    return () => window.removeEventListener('resize', resizeCanvas, false);
+    return () => {
+      window.removeEventListener('resize', resizeCanvas, false);
+      document.removeEventListener('keyup', onKeyUp, false);
+    }
   }, []);
 
   useEffect(() => {
@@ -36,6 +45,9 @@ const Editor = ({ data }) => {
       autoSave.save();
     });
 
+    canvas.on('drop', (e) => {
+      console.log(e)
+    });
   }
 
   const initCanvas = () => {
@@ -51,6 +63,10 @@ const Editor = ({ data }) => {
     canvasRef.current.setHeight(window.innerHeight);
     canvasRef.current.setWidth(window.innerWidth);
     canvasRef.current.renderAll();
+  }
+
+  const onKeyUp = (e) => {
+    if (e.keyCode == 46) deleteObject();
   }
 
   const onUndo = () => {
@@ -85,6 +101,58 @@ const Editor = ({ data }) => {
     });
   }
 
+  const onClear = () => {
+    canvas.clear().renderAll()
+  }
+
+  const getSelection = () => {
+    return canvasRef.current.getActiveObject() == null ? canvasRef.current.getActiveGroup() : canvasRef.current.getActiveObject()
+  }
+
+  const deleteObject = () => {
+    const activeObject = getSelection();
+
+    if (activeObject) {
+      if (activeObject._objects) {
+        const objectsInGroup = activeObject.getObjects();
+        objectsInGroup.forEach((object) => {
+          canvasRef.current.remove(object);
+        });
+      } else {
+        canvasRef.current.remove(activeObject);
+      }
+    }
+  }
+
+  const onHorizontalFlip = () => {
+    const activeObject = canvas.getActiveObject();
+
+    if (activeObject) {
+      activeObject.toggle("flipY");
+    }
+
+    canvas.fire('object:modified');
+
+    canvas.renderAll();
+  }
+
+  const onVerticalFlip = () => {
+    const activeObject = canvas.getActiveObject();
+
+    if (activeObject) {
+      activeObject.toggle("flipX");
+    }
+
+    canvas.fire('object:modified');
+
+    canvas.renderAll();
+  }
+
+  const onChangeMode = () => {
+    canvas.isDrawingMode = !isDrawing;
+    setIsDrawing(!isDrawing);
+  }
+
   const onSelect = (e) => {
 
     const ext = getExt(e);
@@ -109,12 +177,26 @@ const Editor = ({ data }) => {
         </Canvas>
         <Sidebar isActive={true}>
           <Tab>
+          <TabActions>
+              <Button title={lang.Changemode} variant={`${!isDrawing ? "success-light" : "light"}`} onClick={onChangeMode}>
+                <Icon variant="cursor" />
+              </Button>
+            </TabActions>
             <TabActions>
-              <Button variant="light" onClick={onUndo}>
+              <Button title={lang.Undo} variant="light" onClick={onUndo}>
                 <Icon variant="undo" />
               </Button>
-              <Button variant="light" onClick={onRedo}>
+              <Button title={lang.Redo} variant="light" onClick={onRedo}>
                 <Icon variant="redo" />
+              </Button>
+              <Button title={lang.Clear} variant="light" onClick={onClear}>
+                <Icon variant="close-radial" />
+              </Button>
+              <Button title={lang.Verticalflip} variant="light" onClick={onVerticalFlip}>
+                <Icon variant="horizontal" />
+              </Button>
+              <Button title={lang.Horizontalflip} variant="light" onClick={onHorizontalFlip}>
+                <Icon variant="vertical" />
               </Button>
             </TabActions>
             <ImagesSelector data={data.images} onSelect={onSelect} />

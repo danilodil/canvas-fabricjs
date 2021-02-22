@@ -8,6 +8,8 @@ const colors = {
   editorBackground: "#ffffff",
   dark: "#3a3a3a",
   light: "#ffffff",
+  success: "#52cc6e",
+  successLight: "#bdfccc",
 }
 
 const theme = {

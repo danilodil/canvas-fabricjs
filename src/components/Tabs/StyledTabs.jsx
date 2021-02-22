@@ -12,6 +12,7 @@ export const StyledTabActions = styled.div`
   align-items: center;
   border-bottom: 1px solid ${({ theme }) => theme.colors.borderColor};
   padding-bottom: 1rem;
+  margin-bottom: 1rem;
 
   >* {
     margin-right: 1rem;

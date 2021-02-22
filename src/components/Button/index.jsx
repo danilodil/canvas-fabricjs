@@ -1,5 +1,5 @@
 import React from "react";
-import { StyledButtonPrimary, StyledButtonLight } from "./StyledButtons";
+import { StyledButtonPrimary, StyledButton } from "./StyledButtons";
 
 const Button = (props) => {
 
@@ -8,14 +8,22 @@ const Button = (props) => {
   const render = () => {
     switch (variant) {
       case "light":
-        return <StyledButtonLight {...props}>
+        return <StyledButton {...props}>
           {children}
-        </StyledButtonLight>
+        </StyledButton>
+      case "success":
+        return <StyledButton {...props} className="success">
+          {children}
+        </StyledButton>
+      case "success-light":
+        return <StyledButton {...props} className="success-light">
+          {children}
+        </StyledButton>
       case "primary":
       default:
-        return <StyledButtonPrimary {...props}>
+        return <StyledButton {...props} className="primary">
           {children}
-        </StyledButtonPrimary>
+        </StyledButton>
 
     }
   }

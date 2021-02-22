@@ -1,22 +1,6 @@
 import styled from 'styled-components';
 
-export const StyledButtonPrimary = styled.button`
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: ${({ theme }) => theme.button.padding};
-  background-color: ${({ theme }) => theme.colors.primary};
-  border-radius: ${({ theme }) => theme.button.borderRadius};
-  border: 1px solid ${({ theme }) => theme.colors.primary};
-  cursor: pointer;
-  transition: background-color ${({ theme }) => theme.button.transition} ease;
-
-  &:hover {
-    background-color: transparent;
-  }
-`
-
-export const StyledButtonLight = styled.button`
+export const StyledButton = styled.button`
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -27,6 +11,27 @@ export const StyledButtonLight = styled.button`
   cursor: pointer;
   transition: background-color ${({ theme }) => theme.button.transition} ease, box-shadow ${({ theme }) => theme.button.transition} ease;
   box-shadow: ${({ theme }) => theme.button.shadow};
+
+  &.success {
+    background-color: ${({ theme }) => theme.colors.success};
+    border: 1px solid ${({ theme }) => theme.colors.success};
+  }
+
+  &.success-light {
+    background-color: ${({ theme }) => theme.colors.successLight};
+    border: 1px solid ${({ theme }) => theme.colors.successLight};
+
+    &:hover {
+      background-color: ${({ theme }) => theme.colors.successLight};
+      border: 1px solid ${({ theme }) => theme.colors.successLight};
+    }
+  }
+
+  &.primary {
+    background-color: ${({ theme }) => theme.colors.primary};
+    border: 1px solid ${({ theme }) => theme.colors.primary};
+    color: ${({ theme }) => theme.colors.light};
+  }
 
   &:hover {
     background-color: transparent;
