@@ -87,7 +87,7 @@ const Editor = ({ data }) => {
     canvas.add(gif);
     onAdded();
 
-    fabric?.util.requestAnimFrame(render = () => {
+    fabric?.util.requestAnimFrame(function render() {
       canvas.renderAll();
       fabric.util.requestAnimFrame(render);
     });

@@ -6,7 +6,7 @@ const ImagesSelector = ({ children, onSelect, data }) => {
 
   return (
     <StyledImagesContainer>
-      <SmoothScrollBar className="scroll-bar-inner">
+      <SmoothScrollBar alwaysShowTracks={true} className="scroll-bar-inner">
         <StyledImagesSelector>
           {data.map((img, i) => (
             <StyledImage key={`si-${i}`} onClick={()=>onSelect(img.name)}>
