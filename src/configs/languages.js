@@ -17,6 +17,8 @@ const languages = {
     SelectFont: "Select Font",
     AddToCanvas: "Add To Canvas",
     AddToPath: "Add To Path",
+    Effects: "Effects",
+    SelectFormat: "Select Format"
   }
 }
 

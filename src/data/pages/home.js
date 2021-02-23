@@ -15,6 +15,11 @@ export const page = {
       { value: "Source Sans Pro", label: 'Source Sans Pro' },
       { value: "Noto Sans", label: 'Noto Sans' },
       { value: "RocknRoll One", label: 'RocknRoll One' },
+    ],
+    exports: [
+      { value: "jpg", label:"Jpg"},
+      { value: "png", label:"Png"},
+      { value: "pdf", label:"Pdf"},
     ]
   },
 }

@@ -16,6 +16,7 @@ import appConfig from "../../configs/appConfig";
 import Select from 'react-select';
 import { Label, TextArea, Spacer } from "../../components/Ui";
 import FontFaceObserver from "fontfaceobserver";
+import { jsPDF } from "jspdf";
 
 const Editor = ({ data }) => {
 
@@ -30,6 +31,7 @@ const Editor = ({ data }) => {
   const [font, setFont] = useState(data.fonts[0]);
   const [text, setText] = useState("Lorem ipsum, or lipsum as it is sometimes known");
   const [selected, setSelected] = useState(null);
+  const [exportFormat, setExportFormat] = useState(data.exports[0]);
 
   useEffect(() => {
 
@@ -390,6 +392,37 @@ const Editor = ({ data }) => {
     }
   }
 
+  const onExport = () => {
+
+    const dataURL = canvas.toDataURL({
+      width: canvas.width,
+      height: canvas.height,
+      left: 0,
+      top: 0,
+      format: exportFormat.value == "pdf" ? "jpg" : exportFormat.value,
+    });
+
+    if (exportFormat.value == "pdf") {
+      const pdf = new jsPDF({
+        orientation: 'landscape',
+      });
+      const imgProps= pdf.getImageProperties(dataURL);
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width
+
+      pdf.addImage(dataURL, 'JPEG', 0, 0, pdfWidth, pdfHeight);
+      pdf.save("export.pdf");
+
+    } else {
+      const link = document.createElement('a');
+      link.download = `export.${exportFormat.value}`;
+      link.href = dataURL;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  }
+
   return (
     <Layout>
       <StyledEditor>
@@ -430,6 +463,11 @@ const Editor = ({ data }) => {
                   <Icon variant="select-all" />
                 </Button>
               </TabActions>
+              <Spacer />
+              <Label>{lang.Export}</Label>
+              <Select defaultValue={exportFormat} onChange={setExportFormat} placeholder={lang.SelectFormat} options={data.exports} />
+              <Spacer />
+              <Button className="w-100" variant="light" onClick={onExport}>{lang.Export}</Button>
             </Tab>
             <Tab name={lang.Assets}>
               <ImagesSelector data={data.images} onSelect={(name, elm) => onSelect(name, false, elm)} onImageStartDrag={onImageStartDrag} onImageStopDrag={onImageStopDrag} />
@@ -448,8 +486,8 @@ const Editor = ({ data }) => {
                 </Row>
               </Container>
             </Tab>
-            <Tab name={lang.Export}>
-              {lang.Export}
+            <Tab name={lang.Effects}>
+              {lang.Effects}
             </Tab>
           </Tabs>
         </Sidebar>
