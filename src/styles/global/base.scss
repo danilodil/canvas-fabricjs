@@ -18,6 +18,10 @@ body, html {
 	margin: 0;
 	line-height: 1.5;
 	background-color: $light;
+
+	*{
+		font-family: $font-family-base, sans-serif;
+	}
 }
 
 #app .scrollbar-track {
@@ -34,3 +38,5 @@ body, html {
   left: 2px;
   background-color: $primary;
 }
+
+.w-100 {width: 100%;}

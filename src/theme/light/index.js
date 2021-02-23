@@ -24,7 +24,13 @@ const theme = {
     shadow: "0px 8px 6px rgb(0 27 72 / 4%)",
   },
   spacings: {
-    tabPadding: "4rem 2rem 2rem 2rem",
+    tabPadding: "2rem",
+    inputSpacing: "1rem",
+    spacer: "1rem",
+    gutter: 20,
+  },
+  font: {
+    family: "Montserrat"
   },
   button: {
     padding: "0.5rem 1rem",

@@ -8,6 +8,7 @@ export const StyledSidebar = styled.div`
   background-color: ${({ theme }) => theme.colors.cover};
   right: 0;
   top: 0;
+  padding-top: 50px;
   transform: ${({isActive}) => isActive ? `translateX(0)` : `translateX(100%)`};
   transition: transform ${({ theme }) => theme.transitions.transition} ${({ theme }) => theme.transitions.transitionTiming};
   z-index: 5;
@@ -22,7 +23,7 @@ export const StyledSidebarClose = styled.div`
   position: absolute;
   border-radius: 50%;
   right: 2rem;
-  top: 2rem;
+  top: 1.4rem;
   cursor: pointer;
   font-size: 0.75rem;
   display: flex;
@@ -43,7 +44,7 @@ export const StyledSidebarShow = styled.div`
   position: absolute;
   border-radius: 50%;
   left: 0;
-  top: 1.4rem;
+  top: 1rem;
   cursor: pointer;
   font-size: 0.75rem;
   display: flex;

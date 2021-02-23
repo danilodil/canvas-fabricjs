@@ -9,6 +9,14 @@ const languages = {
     Group: "Group",
     Ungroup: "Ungroup",
     SelectAll: "Select All",
+    Controls: "Controls",
+    Text: "Text",
+    Export: "Export",
+    Assets: "Assets",
+    FontFace: "Font Face",
+    SelectFont: "Select Font",
+    AddToCanvas: "Add To Canvas",
+    AddToPath: "Add To Path",
   }
 }
 

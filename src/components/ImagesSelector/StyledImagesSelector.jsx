@@ -1,17 +1,18 @@
 import styled from 'styled-components';
 
 export const StyledImagesContainer = styled.div`
-  margin-top: 2rem;
+  height: 100%;
 
   .scroll-bar-inner {
     width: calc(100% + 20px);
+    height: 100%;
     padding-right: 20px;
   }
 `
 
 export const StyledImagesSelector = styled.div`
   width: 100%;
-  height: 60vh;
+  height: 100%;
 `
 
 export const StyledImage = styled.div`

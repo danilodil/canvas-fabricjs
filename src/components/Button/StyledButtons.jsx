@@ -9,6 +9,7 @@ export const StyledButton = styled.button`
   border-radius: ${({ theme }) => theme.button.borderRadius};
   border: 1px solid ${({ theme }) => theme.colors.light};
   cursor: pointer;
+  font-size: 1rem;
   transition: background-color ${({ theme }) => theme.button.transition} ease, box-shadow ${({ theme }) => theme.button.transition} ease;
   box-shadow: ${({ theme }) => theme.button.shadow};
 

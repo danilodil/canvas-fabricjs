@@ -1,9 +1,9 @@
 import React, { useEffect, useState, useRef } from "react"
 import { StyledEditor } from "./StyledEditor"
-import Layout from "../../components/Layout"
+import { Layout, Container, Row, Col } from "../../components/Layout"
 import Sidebar from "../../components/Sidebar"
 import Canvas from "../../components/Canvas"
-import { Tab, TabActions } from "../../components/Tabs";
+import { Tabs, Tab, TabActions } from "../../components/Tabs";
 import Button from "../../components/Button";
 import Icon from "../../components/Icon";
 import ImagesSelector from "../../components/ImagesSelector";
@@ -13,7 +13,9 @@ import 'fabric-history';
 import autoSave from "../../plugins/autosave";
 import languages from "../../configs/languages";
 import appConfig from "../../configs/appConfig";
-import { Separator } from "../../components/Ui";
+import Select from 'react-select';
+import { Label, TextArea, Spacer } from "../../components/Ui";
+import FontFaceObserver from "fontfaceobserver";
 
 const Editor = ({ data }) => {
 
@@ -25,6 +27,8 @@ const Editor = ({ data }) => {
   const dragedImage = useRef(null);
   const dragedImageName = useRef(null);
   const clone = useRef(null);
+  const [font, setFont] = useState(data.fonts[0]);
+  const [text, setText] = useState("Lorem ipsum, or lipsum as it is sometimes known, is dummy text used in laying out print, graphic or web designs.")
 
   useEffect(() => {
 
@@ -170,6 +174,7 @@ const Editor = ({ data }) => {
     fab_video.scaleToWidth(appConfig.initialImageSize);
     canvas.add(fab_video);
     fab_video.getElement().play();
+    onAdded();
   }
 
   const onClear = () => {
@@ -325,6 +330,36 @@ const Editor = ({ data }) => {
     });
   }
 
+  const onAddText = () => {
+    var textbox = new fabric.Textbox(text, {
+      left: 50,
+      top: 50,
+      width: 300,
+      fontSize: 20
+    });
+
+    canvas.add(textbox).setActiveObject(textbox);
+
+    if (font !== 'Times New Roman') {
+      loadAndUse(font.value);
+    } else {
+      canvas.getActiveObject().set("fontFamily", font.value);
+      canvas.requestRenderAll();
+    }
+  }
+
+  function loadAndUse(fontName) {
+    const myfont = new FontFaceObserver(fontName)
+    myfont.load()
+      .then(function () {
+        canvas.getActiveObject().set("fontFamily", fontName);
+        canvas.requestRenderAll();
+      }).catch(function (e) {
+        console.log(e)
+        alert('font loading failed ' + fontName);
+      });
+  }
+
   return (
     <Layout>
       <StyledEditor>
@@ -332,40 +367,61 @@ const Editor = ({ data }) => {
           <canvas id="canvas" />
         </Canvas>
         <Sidebar isActive={true}>
-          <Tab>
-            <TabActions>
-              <Button title={lang.Changemode} variant={`${!isDrawing ? "success-light" : "light"}`} onClick={onChangeMode}>
-                <Icon variant="cursor" />
-              </Button>
-            </TabActions>
-            <TabActions>
-              <Button title={lang.Undo} variant="light" onClick={onUndo}>
-                <Icon variant="undo" />
-              </Button>
-              <Button title={lang.Redo} variant="light" onClick={onRedo}>
-                <Icon variant="redo" />
-              </Button>
-              <Button title={lang.Clear} variant="light" onClick={onClear}>
-                <Icon variant="close-radial" />
-              </Button>
-              <Button title={lang.Verticalflip} variant="light" onClick={onVerticalFlip}>
-                <Icon variant="horizontal" />
-              </Button>
-              <Button title={lang.Horizontalflip} variant="light" onClick={onHorizontalFlip}>
-                <Icon variant="vertical" />
-              </Button>
-              <Button title={lang.Group} variant="light" onClick={onGroup}>
-                <Icon variant="group" />
-              </Button>
-              <Button title={lang.Ungroup} variant="light" onClick={onUnGroup}>
-                <Icon variant="ungroup" />
-              </Button>
-              <Button title={lang.SelectAll} variant="light" onClick={onSelectAll}>
-                <Icon variant="select-all" />
-              </Button>
-            </TabActions>
-            <ImagesSelector data={data.images} onSelect={(name, elm) => onSelect(name, false, elm)} onImageStartDrag={onImageStartDrag} onImageStopDrag={onImageStopDrag} />
-          </Tab>
+          <Tabs>
+            <Tab name={lang.Controls}>
+              <TabActions>
+                <Button title={lang.Changemode} variant={`${!isDrawing ? "success-light" : "light"}`} onClick={onChangeMode}>
+                  <Icon variant="cursor" />
+                </Button>
+              </TabActions>
+              <TabActions>
+                <Button title={lang.Undo} variant="light" onClick={onUndo}>
+                  <Icon variant="undo" />
+                </Button>
+                <Button title={lang.Redo} variant="light" onClick={onRedo}>
+                  <Icon variant="redo" />
+                </Button>
+                <Button title={lang.Clear} variant="light" onClick={onClear}>
+                  <Icon variant="close-radial" />
+                </Button>
+                <Button title={lang.Verticalflip} variant="light" onClick={onVerticalFlip}>
+                  <Icon variant="horizontal" />
+                </Button>
+                <Button title={lang.Horizontalflip} variant="light" onClick={onHorizontalFlip}>
+                  <Icon variant="vertical" />
+                </Button>
+                <Button title={lang.Group} variant="light" onClick={onGroup}>
+                  <Icon variant="group" />
+                </Button>
+                <Button title={lang.Ungroup} variant="light" onClick={onUnGroup}>
+                  <Icon variant="ungroup" />
+                </Button>
+                <Button title={lang.SelectAll} variant="light" onClick={onSelectAll}>
+                  <Icon variant="select-all" />
+                </Button>
+              </TabActions>
+            </Tab>
+            <Tab name={lang.Assets}>
+              <ImagesSelector data={data.images} onSelect={(name, elm) => onSelect(name, false, elm)} onImageStartDrag={onImageStartDrag} onImageStopDrag={onImageStopDrag} />
+            </Tab>
+            <Tab name={lang.Text}>
+              <Label>{lang.FontFace}</Label>
+              <Select defaultValue={font} onChange={setFont} placeholder={lang.SelectFont} options={data.fonts} />
+              <Spacer />
+              <Label>{lang.Text}</Label>
+              <TextArea defaultValue={text} rows={5} onChange={(e) => setText(e.target.value)} />
+              <Spacer />
+              <Container>
+                <Row>
+                  <Col><Button className="w-100" variant="light" onClick={onAddText}>{lang.AddToCanvas}</Button></Col>
+                  <Col><Button disabled className="w-100" variant="light">{lang.AddToPath}</Button></Col>
+                </Row>
+              </Container>
+            </Tab>
+            <Tab name={lang.Export}>
+              {lang.Export}
+            </Tab>
+          </Tabs>
         </Sidebar>
       </StyledEditor>
     </Layout>
