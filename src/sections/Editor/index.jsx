@@ -28,7 +28,8 @@ const Editor = ({ data }) => {
   const dragedImageName = useRef(null);
   const clone = useRef(null);
   const [font, setFont] = useState(data.fonts[0]);
-  const [text, setText] = useState("Lorem ipsum, or lipsum as it is sometimes known")
+  const [text, setText] = useState("Lorem ipsum, or lipsum as it is sometimes known");
+  const [selected, setSelected] = useState(null);
 
   useEffect(() => {
 
@@ -72,6 +73,8 @@ const Editor = ({ data }) => {
     canvas.on('drop', onDrop);
     canvas.on('dragenter', () => setIsDragOverCanvas(true))
     canvas.on('dragleave', () => setIsDragOverCanvas(false));
+
+    canvas.on('mouse:up', (e) => setSelected(e.target));
 
     fabric.util.requestAnimFrame(function render() {
       canvas.renderAll();
@@ -350,6 +353,17 @@ const Editor = ({ data }) => {
     }
   }
 
+  const onAddTextToPath = () => {
+    const path = selected;
+    const pathInfo = fabric.util.getPathSegmentsInfo(path.path);
+    path.segmentsInfo = pathInfo;
+    const pathLength = pathInfo[pathInfo.length - 1].length;
+    const fontSize = 2.5 * pathLength / text.length;
+    const textObj = new fabric.Text(text, { fontSize: fontSize, path: path, top: path.top, left: path.left });
+    canvas.add(textObj);
+    canvas.remove(path);
+  }
+
   const loadAndUse = (fontName) => {
     var myfont = new FontFaceObserver(fontName)
     myfont.load()
@@ -364,7 +378,7 @@ const Editor = ({ data }) => {
   const onChangeFont = (e) => {
     setFont(e);
 
-    if(canvas.getActiveObject()) {
+    if (canvas.getActiveObject()) {
       if (e.value !== 'Times New Roman') {
         loadAndUse(e.value);
       } else {
@@ -374,7 +388,6 @@ const Editor = ({ data }) => {
         canvas.fire('object:modified');
       }
     }
-
   }
 
   return (
@@ -431,7 +444,7 @@ const Editor = ({ data }) => {
               <Container>
                 <Row>
                   <Col><Button className="w-100" variant="light" onClick={onAddText}>{lang.AddToCanvas}</Button></Col>
-                  <Col><Button disabled className="w-100" variant="light">{lang.AddToPath}</Button></Col>
+                  <Col><Button disabled={!selected?.path} onClick={onAddTextToPath} className="w-100" variant="light">{lang.AddToPath}</Button></Col>
                 </Row>
               </Container>
             </Tab>
