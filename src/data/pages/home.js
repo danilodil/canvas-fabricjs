@@ -10,10 +10,11 @@ export const page = {
     ],
     fonts: [
       { value: "Times New Roman", label:"Times New Roman"},
-      { value: "Pacifico", label: 'Pacifico' },
-      { value: "VT323", label: 'VT323' },
-      { value: "Quicksand", label: 'Quicksand' },
-      { value: "Inconsolata", label: 'Inconsolata' },
+      { value: "Montserrat", label: 'Montserrat' },
+      { value: "Lato", label: 'Lato' },
+      { value: "Source Sans Pro", label: 'Source Sans Pro' },
+      { value: "Noto Sans", label: 'Noto Sans' },
+      { value: "RocknRoll One", label: 'RocknRoll One' },
     ]
   },
 }

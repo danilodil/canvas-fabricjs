@@ -28,7 +28,7 @@ const Editor = ({ data }) => {
   const dragedImageName = useRef(null);
   const clone = useRef(null);
   const [font, setFont] = useState(data.fonts[0]);
-  const [text, setText] = useState("Lorem ipsum, or lipsum as it is sometimes known, is dummy text used in laying out print, graphic or web designs.")
+  const [text, setText] = useState("Lorem ipsum, or lipsum as it is sometimes known")
 
   useEffect(() => {
 
@@ -46,6 +46,8 @@ const Editor = ({ data }) => {
     document.addEventListener('keyup', onKeyUp, false);
     document.addEventListener('copy', onCopy);
     document.addEventListener('paste', onPaste);
+
+    //buildFonts();
 
     return () => {
       window.removeEventListener('resize', resizeCanvas, false);
@@ -334,30 +336,45 @@ const Editor = ({ data }) => {
     var textbox = new fabric.Textbox(text, {
       left: 50,
       top: 50,
-      width: 300,
-      fontSize: 20
+      width: 150,
+      fontSize: 20,
     });
 
     canvas.add(textbox).setActiveObject(textbox);
-
-    if (font !== 'Times New Roman') {
+    if (font.value !== 'Times New Roman') {
       loadAndUse(font.value);
     } else {
       canvas.getActiveObject().set("fontFamily", font.value);
       canvas.requestRenderAll();
+      canvas.fire('object:modified');
     }
   }
 
-  function loadAndUse(fontName) {
-    const myfont = new FontFaceObserver(fontName)
+  const loadAndUse = (fontName) => {
+    var myfont = new FontFaceObserver(fontName)
     myfont.load()
       .then(function () {
         canvas.getActiveObject().set("fontFamily", fontName);
         canvas.requestRenderAll();
       }).catch(function (e) {
-        console.log(e)
         alert('font loading failed ' + fontName);
       });
+  }
+
+  const onChangeFont = (e) => {
+    setFont(e);
+
+    if(canvas.getActiveObject()) {
+      if (e.value !== 'Times New Roman') {
+        loadAndUse(e.value);
+      } else {
+        canvas.getActiveObject().set("fontFamily", e.value);
+        canvas.getActiveObject().set("width", 500)
+        canvas.requestRenderAll();
+        canvas.fire('object:modified');
+      }
+    }
+
   }
 
   return (
@@ -406,7 +423,7 @@ const Editor = ({ data }) => {
             </Tab>
             <Tab name={lang.Text}>
               <Label>{lang.FontFace}</Label>
-              <Select defaultValue={font} onChange={setFont} placeholder={lang.SelectFont} options={data.fonts} />
+              <Select defaultValue={font} onChange={onChangeFont} placeholder={lang.SelectFont} options={data.fonts} />
               <Spacer />
               <Label>{lang.Text}</Label>
               <TextArea defaultValue={text} rows={5} onChange={(e) => setText(e.target.value)} />
