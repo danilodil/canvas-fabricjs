@@ -5,6 +5,7 @@ export const page = {
       {name: "clock.gif"},
       {name: "purepng.com-featuddrced-face-capcapbaseball-capfittedsportsfeatuddrcedface-1421526277843jelit.png"},
       {name: "original.jpg"},
+      {name: "Big_Buck_Bunny.mp4"},
     ]
   },
 }

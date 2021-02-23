@@ -49,5 +49,9 @@ export const StyledImage = styled.div`
     max-width: 100%;
     display: block;
   }
+
+  video {
+    max-width: 100%;
+  }
 `
 

@@ -23,9 +23,20 @@ const Editor = ({ data }) => {
   const [isDrawing, setIsDrawing] = useState(false);
   const [isDragOverCanvas, setIsDragOverCanvas] = useState(false);
   const dragedImage = useRef(null);
+  const dragedImageName = useRef(null);
   const clone = useRef(null);
 
   useEffect(() => {
+
+    fabric.Object.prototype.toObject = (function (toObject) {
+      return function (propertiesToInclude) {
+        propertiesToInclude = (propertiesToInclude || []).concat(
+          ['video_src']
+        );
+        return toObject.apply(this, [propertiesToInclude]);
+      };
+    })(fabric.Object.prototype.toObject);
+
     setCanvas(initCanvas());
     window.addEventListener('resize', resizeCanvas, false);
     document.addEventListener('keyup', onKeyUp, false);
@@ -55,6 +66,11 @@ const Editor = ({ data }) => {
     canvas.on('drop', onDrop);
     canvas.on('dragenter', () => setIsDragOverCanvas(true))
     canvas.on('dragleave', () => setIsDragOverCanvas(false));
+
+    fabric.util.requestAnimFrame(function render() {
+      canvas.renderAll();
+      fabric.util.requestAnimFrame(render);
+    });
 
   }
 
@@ -111,11 +127,6 @@ const Editor = ({ data }) => {
     gif.set({ top: drag ? drag.layerY - appConfig.initialImageSize / 4 : 50, left: drag ? drag.layerX - appConfig.initialImageSize / 4 : 50 });
     canvas.add(gif);
     onAdded();
-
-    fabric?.util.requestAnimFrame(function render() {
-      canvas.renderAll();
-      fabric.util.requestAnimFrame(render);
-    });
   }
 
   const addImg = (e, drag) => {
@@ -136,7 +147,29 @@ const Editor = ({ data }) => {
         onAdded();
       });
     }
+  }
 
+  const addVideo = (url_mp4, elm, drag) => {
+
+    function getVideoElement(url) {
+      var videoE = document.createElement('video');
+      videoE.loop = true;
+      videoE.width = elm.videoWidth;
+      videoE.height = elm.videoHeight;
+      videoE.muted = false;
+      videoE.crossOrigin = "anonymous";
+      var source = document.createElement('source');
+      source.src = url;
+      source.type = 'video/mp4';
+      videoE.appendChild(source);
+      return videoE;
+    }
+    var videoE = getVideoElement(url_mp4);
+    var fab_video = new fabric.Image(videoE, { left: drag ? drag.layerX - appConfig.initialImageSize / 2 : 0, top: drag ? drag.layerY - appConfig.initialImageSize / 2 : 0, name: 'video' });
+    fab_video.set('video_src', url_mp4);
+    fab_video.scaleToWidth(appConfig.initialImageSize);
+    canvas.add(fab_video);
+    fab_video.getElement().play();
   }
 
   const onClear = () => {
@@ -233,13 +266,16 @@ const Editor = ({ data }) => {
     canvas.requestRenderAll();
   }
 
-  const onSelect = (e, drag) => {
+  const onSelect = (e, drag, elm) => {
 
-    const ext = drag ? getExt(e.src) : getExt(e);
+    const ext = drag ? getExt(dragedImageName.current) : getExt(e);
 
     switch (ext) {
       case "gif":
         addGif(e, drag);
+        break;
+      case "mp4":
+        addVideo(`../assets/img/${drag ? dragedImageName.current : e}`, drag ? dragedImage.current : elm, drag);
         break;
       case "jpg":
       case "jpeg":
@@ -249,12 +285,14 @@ const Editor = ({ data }) => {
     }
   }
 
-  const onImageStartDrag = (img) => {
+  const onImageStartDrag = (img, name) => {
     dragedImage.current = img;
+    dragedImageName.current = name;
   }
 
   const onImageStopDrag = () => {
     dragedImage.current = null;
+    dragedImageName.current = null;
   }
 
   const onCopy = () => {
@@ -326,7 +364,7 @@ const Editor = ({ data }) => {
                 <Icon variant="select-all" />
               </Button>
             </TabActions>
-            <ImagesSelector data={data.images} onSelect={onSelect} onImageStartDrag={onImageStartDrag} onImageStopDrag={onImageStopDrag} />
+            <ImagesSelector data={data.images} onSelect={(name, elm) => onSelect(name, false, elm)} onImageStartDrag={onImageStartDrag} onImageStopDrag={onImageStopDrag} />
           </Tab>
         </Sidebar>
       </StyledEditor>
