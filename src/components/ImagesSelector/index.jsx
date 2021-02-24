@@ -1,7 +1,7 @@
 import React, { useState, createRef } from "react";
-import { StyledImagesSelector, StyledImage, StyledImagesContainer } from "./StyledImagesSelector";
-import SmoothScrollBar from "react-smooth-scrollbar";
+import { StyledImagesSelector, StyledImage } from "./StyledImagesSelector";
 import { getExt } from "../../utils";
+import ScrollBarWrapper from "../ScrollBarWrapper";
 
 const ImagesSelector = ({ onSelect, data, onImagesAdded, onImageStartDrag, onImageStopDrag }) => {
 
@@ -48,13 +48,11 @@ const ImagesSelector = ({ onSelect, data, onImagesAdded, onImageStartDrag, onIma
   }
 
   return (
-    <StyledImagesContainer>
-      <SmoothScrollBar alwaysShowTracks={true} className="scroll-bar-inner">
-        <StyledImagesSelector>
-          {render()}
-        </StyledImagesSelector>
-      </SmoothScrollBar>
-    </StyledImagesContainer>
+    <ScrollBarWrapper>
+      <StyledImagesSelector>
+        {render()}
+      </StyledImagesSelector>
+    </ScrollBarWrapper>
   );
 }
 

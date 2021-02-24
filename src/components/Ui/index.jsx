@@ -8,7 +8,8 @@ export const Separator = styled.div`
 `
 export const Spacer = styled.div`
   width: 100%;
-  height: ${({ theme }) => theme.spacings.spacer};
+  height: ${({ theme, variant }) => variant == "input" ? theme.inputs.spacer : theme.spacings.spacer};
+  
 `
 
 export const Label = styled.div`

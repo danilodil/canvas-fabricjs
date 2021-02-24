@@ -20,6 +20,22 @@ export const page = {
       { value: "jpg", label:"Jpg"},
       { value: "png", label:"Png"},
       { value: "pdf", label:"Pdf"},
+    ],
+    blendModes: [
+      { value: "Add", label:"Add"},
+      { value: "Diff", label:"Diff"},
+      { value: "Subtract", label:"Subtract"},
+      { value: "Multiply", label:"Multiply"},
+      { value: "Screen", label:"Screen"},
+      { value: "Lighten", label:"Lighten"},
+      { value: "Darken", label:"Darken"},
+      { value: "Overlay", label:"Overlay"},
+      { value: "Exclusion", label:"Exclusion"},
+      { value: "Tint", label:"Tint"},
+    ],
+    maskModes: [
+      { value: "Multiply", label:"Multiply"},
+      { value: "Mask", label:"Mask"},
     ]
   },
 }

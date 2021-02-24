@@ -1,8 +1,9 @@
 const colors = {
-  primary:"#def3ff",
+  primary:"#4287f5",
   borderColor: "#d9d9d9",
   cover: "#f0f0f0",
   gray: "#AFAFAF",
+  lgray: "#cccccc",
   body: "#a1b747",
   white: "#ffffff",
   editorBackground: "#ffffff",
@@ -39,6 +40,10 @@ const theme = {
     transition: "300ms",
     shadow: "0px 8px 6px rgb(0 27 72 / 4%)",
     shadowHover: "0px 4px 3px rgb(0 27 72 / 4%)"
+  },
+  inputs: {
+    checkSize: "21px",
+    spacer: "12px",
   }
 }
 

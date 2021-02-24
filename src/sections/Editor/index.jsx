@@ -17,6 +17,9 @@ import Select from 'react-select';
 import { Label, TextArea, Spacer } from "../../components/Ui";
 import FontFaceObserver from "fontfaceobserver";
 import { jsPDF } from "jspdf";
+import { Check, Radio, Range, Color } from "../../components/Inputs";
+import { Block } from "../../components/Block";
+import ScrollBarWrapper from "../../components/ScrollBarWrapper";
 
 const Editor = ({ data }) => {
 
@@ -76,7 +79,28 @@ const Editor = ({ data }) => {
     canvas.on('dragenter', () => setIsDragOverCanvas(true))
     canvas.on('dragleave', () => setIsDragOverCanvas(false));
 
-    canvas.on('mouse:up', (e) => setSelected(e.target));
+    canvas.on({
+      'selection:created': (e) => {
+        setSelected(e.target)
+
+
+        const filters = ['grayscale', 'invert', 'remove-color', 'sepia', 'brownie',
+          'brightness', 'contrast', 'saturation', 'noise', 'vintage',
+          'pixelate', 'blur', 'sharpen', 'emboss', 'technicolor',
+          'polaroid', 'blend-color', 'gamma', 'kodachrome',
+          'blackwhite', 'blend-image', 'hue', 'resize'];
+
+        // for (var i = 0; i < filters.length; i++) {
+        //   if(filters[i]) {
+        //     console.log(filters[i])
+        //     filters[i].checked = !!canvas.getActiveObject().filters[i];
+        //   }
+        // }
+      },
+      'selection:cleared': () => {
+        setSelected(null)
+      }
+    });
 
     fabric.util.requestAnimFrame(function render() {
       canvas.renderAll();
@@ -406,7 +430,7 @@ const Editor = ({ data }) => {
       const pdf = new jsPDF({
         orientation: 'landscape',
       });
-      const imgProps= pdf.getImageProperties(dataURL);
+      const imgProps = pdf.getImageProperties(dataURL);
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width
 
@@ -421,6 +445,14 @@ const Editor = ({ data }) => {
       link.click();
       document.body.removeChild(link);
     }
+  }
+
+  const applyFilter = (index, filter) => {
+    const obj = canvas.getActiveObject();
+    obj.filters[index] = filter;
+    obj.applyFilters();
+    canvas.getActiveObject().height;
+    canvas.renderAll();
   }
 
   return (
@@ -487,7 +519,81 @@ const Editor = ({ data }) => {
               </Container>
             </Tab>
             <Tab name={lang.Effects}>
-              {lang.Effects}
+              <ScrollBarWrapper>
+                <Block>
+                  <Check label={lang.Grayscale} />
+                  <Container>
+                    <Row>
+                      <Col><Radio isRemoveSpace={true} label={lang.Avg} name="grayscale" defaultChecked="checked" /></Col>
+                      <Col><Radio isRemoveSpace={true} label={lang.Lum} name="grayscale" /></Col>
+                      <Col><Radio isRemoveSpace={true} label={lang.Light} name="grayscale" /></Col>
+                    </Row>
+                  </Container>
+                </Block>
+                <Spacer />
+                <Label>{lang.Colormatrixfilters}:</Label>
+
+                <Block>
+                  <Check label={`${lang.Invert}`} />
+                  <Check label={lang.Sepia} />
+                  <Check label={lang.BlackWhite} />
+                  <Check label={lang.Brownie} />
+                  <Check label={lang.Vintage} />
+                  <Check label={lang.Kodachrome} />
+                  <Check label={lang.Technicolor} />
+                  <Check label={lang.Polaroid} />
+                </Block>
+
+                <Spacer />
+
+                <Block>
+                  <Check label={lang.Removecolor} />
+                  <Color label={lang.Color} />
+                  <Range isRemoveSpace={true} label={lang.Distance} />
+                </Block>
+
+                <Spacer />
+
+                <Block>
+                  <Check label={lang.Gamma} />
+                  <Range label={lang.Red} />
+                  <Range label={lang.Green} />
+                  <Range isRemoveSpace={true} label={lang.Blue} />
+                </Block>
+
+                <Spacer />
+
+                <Block>
+                  <Range label={lang.Contrast} />
+                  <Range label={lang.Saturation} />
+                  <Range label={lang.Hue} />
+                  <Range label={lang.Noise} />
+                  <Range label={lang.Pixelate} />
+                  <Range label={lang.Blur} />
+                  <Check label={lang.Sharpen} />
+                  <Check isRemoveSpace={true} label={lang.Emboss} />
+                </Block>
+
+                <Spacer />
+
+                <Block>
+                  <Check label={lang.BlendColor} />
+                  <Select defaultValue={data.blendModes[0]} placeholder={lang.Mode} options={data.blendModes} />
+                  <Spacer variant="input"/>
+                  <Color label={lang.Color} />
+                  <Range isRemoveSpace={true} label={lang.Alpha} />
+                </Block>
+
+                <Spacer />
+
+                <Block>
+                  <Check label={lang.BlendImage} />
+                  <Select defaultValue={data.maskModes[0]} placeholder={lang.Mode} options={data.maskModes} />
+                  <Spacer variant="input"/>
+                  <Range isRemoveSpace={true} label={lang.Alpha} />
+                </Block>
+
+              </ScrollBarWrapper>
             </Tab>
           </Tabs>
         </Sidebar>
