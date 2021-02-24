@@ -1,4 +1,5 @@
 import styled from 'styled-components';
+import {responsive} from "../../configs/appConfig";
 
 const navHeight = "40px";
 
@@ -9,6 +10,12 @@ export const StyledTab = styled.div`
   top: ${navHeight};
   left: 0;
   padding: ${({ theme }) => theme.spacings.tabPadding};
+  transition: opacity ${({ theme }) => theme.transitions.transition};
+
+  &.disabled {
+    pointer-events:none;
+    opacity: 0.5;
+  }
 `
 
 export const StyledTabActions = styled.div`
@@ -62,6 +69,10 @@ export const StyledTabsNavItem = styled.div`
 
   &.active {
     background-color: ${({ theme }) => theme.colors.cover};
+  }
+
+  @media (max-width: ${responsive.md}) {
+    padding: 0 0.5rem;
   }
 `
 

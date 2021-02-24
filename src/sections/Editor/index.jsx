@@ -20,11 +20,13 @@ import { jsPDF } from "jspdf";
 import { Check, Radio, Range, Color } from "../../components/Inputs";
 import { Block } from "../../components/Block";
 import ScrollBarWrapper from "../../components/ScrollBarWrapper";
+import { filterIt } from "../../utils";
 
 const Editor = ({ data }) => {
 
   const [canvas, setCanvas] = useState('');
   const canvasRef = useRef(null);
+  const f = useRef(null);
   const lang = languages[appConfig.lang];
   const [isDrawing, setIsDrawing] = useState(false);
   const [isDragOverCanvas, setIsDragOverCanvas] = useState(false);
@@ -35,6 +37,41 @@ const Editor = ({ data }) => {
   const [text, setText] = useState("Lorem ipsum, or lipsum as it is sometimes known");
   const [selected, setSelected] = useState(null);
   const [exportFormat, setExportFormat] = useState(data.exports[0]);
+  const [filters] = useState([
+    'grayscale', 'invert', 'remove-color', 'sepia', 'brownie',
+    'brightness', 'contrast', 'saturation', 'noise', 'vintage',
+    'pixelate', 'blur', 'sharpen', 'emboss', 'technicolor',
+    'polaroid', 'blend-color', 'gamma', 'kodachrome',
+    'blackwhite', 'blend-image', 'hue', 'resize'
+  ])
+  const [defaultFilters] = useState([
+    { name: "grayscale", checked: false },
+    { name: 'invert', checked: false },
+    { name: 'remove-color', checked: false },
+    { name: 'sepia', checked: false },
+    { name: 'brownie', checked: false },
+    { name: 'brightness', checked: false },
+    { name: 'contrast', checked: false },
+    { name: 'saturation', checked: false },
+    { name: 'noise', checked: false },
+    { name: 'vintage', checked: false },
+    { name: 'pixelate', checked: false },
+    { name: 'blur', checked: false },
+    { name: 'sharpen', checked: false },
+    { name: 'emboss', checked: false },
+    { name: 'technicolor', checked: false },
+    { name: 'polaroid', checked: false },
+    { name: 'blend-color', checked: false },
+    { name: 'gamma', checked: false },
+    { name: 'kodachrome', checked: false },
+    { name: 'blackwhite', checked: false },
+    { name: 'blend-image', checked: false },
+    { name: 'hue', checked: false },
+    { name: 'resize', checked: false },
+  ]
+  );
+  const [selectedFilters, setSelectedFilters] = useState(defaultFilters);
+  const filersRef = useRef(null);
 
   useEffect(() => {
 
@@ -71,36 +108,27 @@ const Editor = ({ data }) => {
     autoSave.init(canvas);
     autoSave.getData();
 
-    canvas.on('object:modified', () => {
-      autoSave.save();
-    });
-
+    canvas.on('object:modified', () => { autoSave.save() });
     canvas.on('drop', onDrop);
     canvas.on('dragenter', () => setIsDragOverCanvas(true))
     canvas.on('dragleave', () => setIsDragOverCanvas(false));
+    canvas.on('mouse:up', (e) => {
+      setSelectedFilters(defaultFilters);
+      setSelected(e.target)
+      setFilterTab(e.target);
+    }
+    );
 
-    canvas.on({
-      'selection:created': (e) => {
-        setSelected(e.target)
-
-
-        const filters = ['grayscale', 'invert', 'remove-color', 'sepia', 'brownie',
-          'brightness', 'contrast', 'saturation', 'noise', 'vintage',
-          'pixelate', 'blur', 'sharpen', 'emboss', 'technicolor',
-          'polaroid', 'blend-color', 'gamma', 'kodachrome',
-          'blackwhite', 'blend-image', 'hue', 'resize'];
-
-        // for (var i = 0; i < filters.length; i++) {
-        //   if(filters[i]) {
-        //     console.log(filters[i])
-        //     filters[i].checked = !!canvas.getActiveObject().filters[i];
-        //   }
-        // }
-      },
-      'selection:cleared': () => {
-        setSelected(null)
+    canvas.on({'selection:cleared': () => {
+        setSelected(null);
+        setSelectedFilters(defaultFilters);
       }
     });
+
+    fabric.filterBackend = fabric.initFilterBackend();
+    fabric.Object.prototype.transparentCorners = false;
+
+    f.current = fabric.Image.filters;
 
     fabric.util.requestAnimFrame(function render() {
       canvas.renderAll();
@@ -393,10 +421,10 @@ const Editor = ({ data }) => {
   const loadAndUse = (fontName) => {
     var myfont = new FontFaceObserver(fontName)
     myfont.load()
-      .then(function () {
+      .then(() => {
         canvas.getActiveObject().set("fontFamily", fontName);
         canvas.requestRenderAll();
-      }).catch(function (e) {
+      }).catch((e) => {
         alert('font loading failed ' + fontName);
       });
   }
@@ -453,6 +481,51 @@ const Editor = ({ data }) => {
     obj.applyFilters();
     canvas.getActiveObject().height;
     canvas.renderAll();
+  }
+
+  const onChangeFilter = (e) => {
+    const index = filters.indexOf(e.target.name);
+    applyFilter(index, e.target.checked && getFilterByName(e.target.name));
+    setSelectedFilters(selectedFilters.map((filter, i) => i == index ? { ...filter, checked: e.target.checked } : filter));
+  }
+
+  const getFilterByName = (name) => {
+    switch (name) {
+      case "brownie":
+        return new f.current.Brownie();
+      case "technicolor":
+        return new f.current.Technicolor();
+      case "vintage":
+        return new f.current.Vintage();
+      case "polaroid":
+        return new f.current.Polaroid();
+      case "kodachrome":
+        return new f.current.Kodachrome();
+      case "blackwhite":
+        return new f.current.BlackWhite();
+      case "grayscale":
+        return new f.current.Grayscale();
+      case "invert":
+        return new f.current.Invert();
+      case "sepia":
+        return new f.current.Sepia();
+    }
+  }
+
+  const isFilterChecked = (name) => {
+    return filterIt(selectedFilters, name, "name")[0]?.checked;
+  }
+
+  const setFilterTab = (obj) => {
+    let temp = selectedFilters.map((filter, z) => filter);
+
+    if (obj?.filters?.length) {
+      obj.filters.map((elm, i) => {
+        temp = temp.map((filter, z) => i == z ? { ...filter, checked: elm ? true : false } : filter);
+      })
+
+      setSelectedFilters(temp);
+    }
   }
 
   return (
@@ -518,81 +591,82 @@ const Editor = ({ data }) => {
                 </Row>
               </Container>
             </Tab>
-            <Tab name={lang.Effects}>
+            <Tab isDisabled={!selected ? true : false} name={lang.Effects}>
               <ScrollBarWrapper>
-                <Block>
-                  <Check label={lang.Grayscale} />
-                  <Container>
-                    <Row>
-                      <Col><Radio isRemoveSpace={true} label={lang.Avg} name="grayscale" defaultChecked="checked" /></Col>
-                      <Col><Radio isRemoveSpace={true} label={lang.Lum} name="grayscale" /></Col>
-                      <Col><Radio isRemoveSpace={true} label={lang.Light} name="grayscale" /></Col>
-                    </Row>
-                  </Container>
-                </Block>
-                <Spacer />
-                <Label>{lang.Colormatrixfilters}:</Label>
+                <form ref={filersRef}>
+                  <Block>
+                    <Check checked={isFilterChecked("grayscale")} onChange={onChangeFilter} name="grayscale" label={lang.Grayscale} />
+                    <Container>
+                      <Row>
+                        <Col><Radio isRemoveSpace={true} value="avg" label={lang.Avg} name="grayscale-mode" defaultChecked="checked" /></Col>
+                        <Col><Radio isRemoveSpace={true} value="lum" label={lang.Lum} name="grayscale-mode" /></Col>
+                        <Col><Radio isRemoveSpace={true} value="light" label={lang.Light} name="grayscale-mode" /></Col>
+                      </Row>
+                    </Container>
+                  </Block>
+                  <Spacer />
+                  <Label>{lang.Colormatrixfilters}:</Label>
 
-                <Block>
-                  <Check label={`${lang.Invert}`} />
-                  <Check label={lang.Sepia} />
-                  <Check label={lang.BlackWhite} />
-                  <Check label={lang.Brownie} />
-                  <Check label={lang.Vintage} />
-                  <Check label={lang.Kodachrome} />
-                  <Check label={lang.Technicolor} />
-                  <Check label={lang.Polaroid} />
-                </Block>
+                  <Block>
+                    <Check checked={isFilterChecked("invert")} onChange={onChangeFilter} name="invert" label={`${lang.Invert}`} />
+                    <Check checked={isFilterChecked("sepia")} onChange={onChangeFilter} name="sepia" label={lang.Sepia} />
+                    <Check checked={isFilterChecked("blackwhite")} onChange={onChangeFilter} name="blackwhite" label={lang.BlackWhite} />
+                    <Check checked={isFilterChecked("brownie")} onChange={onChangeFilter} name="brownie" label={lang.Brownie} />
+                    <Check checked={isFilterChecked("vintage")} onChange={onChangeFilter} name="vintage" label={lang.Vintage} />
+                    <Check checked={isFilterChecked("kodachrome")} onChange={onChangeFilter} name="kodachrome" label={lang.Kodachrome} />
+                    <Check checked={isFilterChecked("technicolor")} onChange={onChangeFilter} name="technicolor" label={lang.Technicolor} />
+                    <Check checked={isFilterChecked("polaroid")} onChange={onChangeFilter} name="polaroid" isRemoveSpace={true} label={lang.Polaroid} />
+                  </Block>
 
-                <Spacer />
+                  <Spacer />
 
-                <Block>
-                  <Check label={lang.Removecolor} />
-                  <Color label={lang.Color} />
-                  <Range isRemoveSpace={true} label={lang.Distance} />
-                </Block>
+                  <Block>
+                    <Check name="removecolor" label={lang.Removecolor} />
+                    <Color name="removecolor-color" label={lang.Color} />
+                    <Range name="removecolor-distance" isRemoveSpace={true} label={lang.Distance} />
+                  </Block>
 
-                <Spacer />
+                  <Spacer />
 
-                <Block>
-                  <Check label={lang.Gamma} />
-                  <Range label={lang.Red} />
-                  <Range label={lang.Green} />
-                  <Range isRemoveSpace={true} label={lang.Blue} />
-                </Block>
+                  <Block>
+                    <Check name="gamma" label={lang.Gamma} />
+                    <Range name="gamma-red" label={lang.Red} />
+                    <Range name="gamma-green" label={lang.Green} />
+                    <Range name="gamma-blue" isRemoveSpace={true} label={lang.Blue} />
+                  </Block>
 
-                <Spacer />
+                  <Spacer />
 
-                <Block>
-                  <Range label={lang.Contrast} />
-                  <Range label={lang.Saturation} />
-                  <Range label={lang.Hue} />
-                  <Range label={lang.Noise} />
-                  <Range label={lang.Pixelate} />
-                  <Range label={lang.Blur} />
-                  <Check label={lang.Sharpen} />
-                  <Check isRemoveSpace={true} label={lang.Emboss} />
-                </Block>
+                  <Block>
+                    <Range name="contrast" label={lang.Contrast} />
+                    <Range name="saturation" label={lang.Saturation} />
+                    <Range name="hue" label={lang.Hue} />
+                    <Range name="noise" label={lang.Noise} />
+                    <Range name="pixelate" label={lang.Pixelate} />
+                    <Range name="blur" label={lang.Blur} />
+                    <Check name="sharpen" label={lang.Sharpen} />
+                    <Check name="emboss" isRemoveSpace={true} label={lang.Emboss} />
+                  </Block>
 
-                <Spacer />
+                  <Spacer />
 
-                <Block>
-                  <Check label={lang.BlendColor} />
-                  <Select defaultValue={data.blendModes[0]} placeholder={lang.Mode} options={data.blendModes} />
-                  <Spacer variant="input"/>
-                  <Color label={lang.Color} />
-                  <Range isRemoveSpace={true} label={lang.Alpha} />
-                </Block>
+                  <Block>
+                    <Check name="blendcolor" label={lang.BlendColor} />
+                    <Select name="blendcolor-mode" defaultValue={data.blendModes[0]} placeholder={lang.Mode} options={data.blendModes} />
+                    <Spacer variant="input" />
+                    <Color name="blendcolor-color" label={lang.Color} />
+                    <Range name="blendcolor-alpha" isRemoveSpace={true} label={lang.Alpha} />
+                  </Block>
 
-                <Spacer />
+                  <Spacer />
 
-                <Block>
-                  <Check label={lang.BlendImage} />
-                  <Select defaultValue={data.maskModes[0]} placeholder={lang.Mode} options={data.maskModes} />
-                  <Spacer variant="input"/>
-                  <Range isRemoveSpace={true} label={lang.Alpha} />
-                </Block>
-
+                  <Block>
+                    <Check name="blendimage" label={lang.BlendImage} />
+                    <Select name="blendimage-mode" defaultValue={data.maskModes[0]} placeholder={lang.Mode} options={data.maskModes} />
+                    <Spacer variant="input" />
+                    <Range name="blendimage-alpha" isRemoveSpace={true} label={lang.Alpha} />
+                  </Block>
+                </form>
               </ScrollBarWrapper>
             </Tab>
           </Tabs>

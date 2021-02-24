@@ -1,10 +1,10 @@
 import React from "react";
 import { StyledTab } from "./StyledTabs";
 
-const Tab = ({ children, name, isActive }) => {
+const Tab = ({ children, name, isActive, isDisabled }) => {
 
   return (
-    <StyledTab className={`${isActive ? "active" : ""}`}>
+    <StyledTab className={`${isActive ? "active" : ""} ${isDisabled ? "disabled" : ""}`}>
       {children}
     </StyledTab>
   );
