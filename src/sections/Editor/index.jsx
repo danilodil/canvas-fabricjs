@@ -17,7 +17,7 @@ import Select from 'react-select';
 import { Label, TextArea, Spacer } from "../../components/Ui";
 import FontFaceObserver from "fontfaceobserver";
 import { jsPDF } from "jspdf";
-import { Check, Radio, Range, Color } from "../../components/Inputs";
+import { Check, Radio, Range, Color, RadioC } from "../../components/Inputs";
 import { Block } from "../../components/Block";
 import ScrollBarWrapper from "../../components/ScrollBarWrapper";
 import { filterIt } from "../../utils";
@@ -45,14 +45,14 @@ const Editor = ({ data }) => {
     'blackwhite', 'blend-image', 'hue', 'resize'
   ])
   const [defaultFilters] = useState([
-    { name: "grayscale", checked: false },
+    { name: "grayscale", checked: false, mode: "average" },
     { name: 'invert', checked: false },
-    { name: 'remove-color', checked: false },
+    { name: 'remove-color', checked: false, color: "#fc1d1d", distance: 0.5 },
     { name: 'sepia', checked: false },
     { name: 'brownie', checked: false },
     { name: 'brightness', checked: false },
-    { name: 'contrast', checked: false },
-    { name: 'saturation', checked: false },
+    { name: 'contrast', checked: false, contrast: 0 },
+    { name: 'saturation', checked: false, saturation: 0 },
     { name: 'noise', checked: false },
     { name: 'vintage', checked: false },
     { name: 'pixelate', checked: false },
@@ -62,11 +62,11 @@ const Editor = ({ data }) => {
     { name: 'technicolor', checked: false },
     { name: 'polaroid', checked: false },
     { name: 'blend-color', checked: false },
-    { name: 'gamma', checked: false },
+    { name: 'gamma', checked: false, red: 1, green: 1, blue: 1 },
     { name: 'kodachrome', checked: false },
     { name: 'blackwhite', checked: false },
     { name: 'blend-image', checked: false },
-    { name: 'hue', checked: false },
+    { name: 'hue', checked: false, rotation: 0 },
     { name: 'resize', checked: false },
   ]
   );
@@ -116,10 +116,12 @@ const Editor = ({ data }) => {
       setSelectedFilters(defaultFilters);
       setSelected(e.target)
       setFilterTab(e.target);
+      console.log(e.target)
     }
     );
 
-    canvas.on({'selection:cleared': () => {
+    canvas.on({
+      'selection:cleared': () => {
         setSelected(null);
         setSelectedFilters(defaultFilters);
       }
@@ -475,6 +477,11 @@ const Editor = ({ data }) => {
     }
   }
 
+  const getFilter = (index) => {
+    const obj = canvas.getActiveObject();
+    return obj.filters[index];
+  }
+
   const applyFilter = (index, filter) => {
     const obj = canvas.getActiveObject();
     obj.filters[index] = filter;
@@ -483,13 +490,85 @@ const Editor = ({ data }) => {
     canvas.renderAll();
   }
 
-  const onChangeFilter = (e) => {
-    const index = filters.indexOf(e.target.name);
-    applyFilter(index, e.target.checked && getFilterByName(e.target.name));
-    setSelectedFilters(selectedFilters.map((filter, i) => i == index ? { ...filter, checked: e.target.checked } : filter));
+  const applyFilterValue = (index, prop, value) => {
+    const obj = canvas.getActiveObject();
+    if (obj.filters[index]) {
+      obj.filters[index][prop] = value;
+      obj.applyFilters();
+      canvas.getActiveObject().height;
+      canvas.renderAll();
+    }
   }
 
-  const getFilterByName = (name) => {
+  const onChangeFilter = (e) => {
+    const name = e.target.name;
+    const index = filters.indexOf(name);
+    const filt = filterIt(selectedFilters, name, "name")[0];
+
+    switch (name) {
+      case "remove-color":
+
+        applyFilter(index, e.target.checked && getFilterByName(name, {
+          distance: filt.distance,
+          color: filt.color,
+        }));
+        setSelectedFilters(selectedFilters.map((filter, i) => i == index ? { ...filter, checked: e.target.checked } : filter));
+
+        break;
+      case "gamma":
+
+        applyFilter(index, e.target.checked && getFilterByName(name, {
+          gamma: [filt.red, filt.green, filt.blue]
+        }));
+        setSelectedFilters(selectedFilters.map((filter, i) => i == index ? { ...filter, checked: e.target.checked } : filter));
+
+        break;
+      default:
+        applyFilter(index, e.target.checked && getFilterByName(name));
+        setSelectedFilters(selectedFilters.map((filter, i) => i == index ? { ...filter, checked: e.target.checked } : filter));
+        break;
+    }
+  }
+
+  const onChangeFilterValue = (e, i, key, type, typeV) => {
+    let value = e.target.value;
+    let temp = selectedFilters.map((filter) => filter);
+    let current = null;
+
+    temp[i] = { ...temp[i], checked: true }
+    temp[i][key] = value;
+
+    switch (type) {
+      case "gamma":
+        current = getFilter(17).gamma;
+        current[typeV] = parseFloat(value);
+        value = current;
+        break;
+    }
+
+    switch (key) {
+      case "contrast":
+        applyFilter(6, getFilterByName(key, {
+          contrast: parseFloat(value)
+        }));
+        break;
+      case "saturation":
+        applyFilter(7, getFilterByName(key, {
+          saturation: parseFloat(value)
+        }));
+        break;
+      case "rotation":
+        applyFilter(21, getFilterByName(key, {
+          saturation: parseFloat(value)
+        }));
+        break;
+    }
+
+    applyFilterValue(i, type ? type : key, value);
+    setSelectedFilters(temp);
+  };
+
+  const getFilterByName = (name, options) => {
     switch (name) {
       case "brownie":
         return new f.current.Brownie();
@@ -509,6 +588,16 @@ const Editor = ({ data }) => {
         return new f.current.Invert();
       case "sepia":
         return new f.current.Sepia();
+      case "remove-color":
+        return new f.current.RemoveColor(options);
+      case "gamma":
+        return new f.current.Gamma(options);
+      case "contrast":
+        return new f.current.Contrast(options);
+      case "saturation":
+        return new f.current.Saturation(options);
+      case "rotation":
+        return new f.current.HueRotation(options);
     }
   }
 
@@ -521,7 +610,24 @@ const Editor = ({ data }) => {
 
     if (obj?.filters?.length) {
       obj.filters.map((elm, i) => {
-        temp = temp.map((filter, z) => i == z ? { ...filter, checked: elm ? true : false } : filter);
+        temp[i] = { ...temp[i], checked: elm ? true : false };
+        if (elm && elm.mode) {
+          temp[i]["mode"] = elm.mode;
+        }
+        if (elm && elm.gamma) {
+          temp[i]["red"] = elm.gamma[0];
+          temp[i]["green"] = elm.gamma[1];
+          temp[i]["blue"] = elm.gamma[2];
+        }
+        if (elm && elm.contrast) {
+          temp[i]["contrast"] = elm.contrast;
+        }
+        if (elm && elm.saturation) {
+          temp[i]["saturation"] = elm.saturation;
+        }
+        if (elm && elm.rotation) {
+          temp[i]["rotation"] = elm.rotation;
+        }
       })
 
       setSelectedFilters(temp);
@@ -598,9 +704,9 @@ const Editor = ({ data }) => {
                     <Check checked={isFilterChecked("grayscale")} onChange={onChangeFilter} name="grayscale" label={lang.Grayscale} />
                     <Container>
                       <Row>
-                        <Col><Radio isRemoveSpace={true} value="avg" label={lang.Avg} name="grayscale-mode" defaultChecked="checked" /></Col>
-                        <Col><Radio isRemoveSpace={true} value="lum" label={lang.Lum} name="grayscale-mode" /></Col>
-                        <Col><Radio isRemoveSpace={true} value="light" label={lang.Light} name="grayscale-mode" /></Col>
+                        <Col><RadioC disabled={!isFilterChecked("grayscale")} checked={selectedFilters[0].mode == "average"} onChange={(e) => onChangeFilterValue(e, 0, "mode")} isRemoveSpace={true} value="average" label={lang.Avg} name="0" /></Col>
+                        <Col><RadioC disabled={!isFilterChecked("grayscale")} checked={selectedFilters[0].mode == "luminosity"} onChange={(e) => onChangeFilterValue(e, 0, "mode")} isRemoveSpace={true} value="luminosity" label={lang.Lum} name="0" /></Col>
+                        <Col><RadioC disabled={!isFilterChecked("grayscale")} checked={selectedFilters[0].mode == "lightness"} onChange={(e) => onChangeFilterValue(e, 0, "mode")} isRemoveSpace={true} value="lightness" label={lang.Light} name="0" /></Col>
                       </Row>
                     </Container>
                   </Block>
@@ -621,26 +727,26 @@ const Editor = ({ data }) => {
                   <Spacer />
 
                   <Block>
-                    <Check name="removecolor" label={lang.Removecolor} />
-                    <Color name="removecolor-color" label={lang.Color} />
-                    <Range name="removecolor-distance" isRemoveSpace={true} label={lang.Distance} />
+                    <Check checked={isFilterChecked("remove-color")} onChange={onChangeFilter} name="remove-color" label={lang.Removecolor} />
+                    <Color disabled={!isFilterChecked("remove-color")} onChange={(e) => onChangeFilterValue(e, 2, "color")} value={selectedFilters[2].color} name="remove-color-color" label={lang.Color} />
+                    <Range disabled={!isFilterChecked("remove-color")} onChange={(e) => onChangeFilterValue(e, 2, "distance")} value={selectedFilters[2].distance} name="remove-color-distance" min="0" max="1" step="0.01" isRemoveSpace={true} label={lang.Distance} />
                   </Block>
 
                   <Spacer />
 
                   <Block>
-                    <Check name="gamma" label={lang.Gamma} />
-                    <Range name="gamma-red" label={lang.Red} />
-                    <Range name="gamma-green" label={lang.Green} />
-                    <Range name="gamma-blue" isRemoveSpace={true} label={lang.Blue} />
+                    <Check onChange={onChangeFilter} name="gamma" label={lang.Gamma} />
+                    <Range disabled={!isFilterChecked("gamma")} onChange={(e) => onChangeFilterValue(e, 17, "red", "gamma", 0)} value={selectedFilters[17].red} name="gamma-red" label={lang.Red} min="0.2" max="2.2" step="0.003921" />
+                    <Range disabled={!isFilterChecked("gamma")} onChange={(e) => onChangeFilterValue(e, 17, "green", "gamma", 1)} value={selectedFilters[17].green} name="gamma-green" label={lang.Green} min="0.2" max="2.2" step="0.003921" />
+                    <Range disabled={!isFilterChecked("gamma")} onChange={(e) => onChangeFilterValue(e, 17, "blue", "gamma", 2)} value={selectedFilters[17].blue} name="gamma-blue" isRemoveSpace={true} label={lang.Blue} min="0.2" max="2.2" step="0.003921" />
                   </Block>
 
                   <Spacer />
 
                   <Block>
-                    <Range name="contrast" label={lang.Contrast} />
-                    <Range name="saturation" label={lang.Saturation} />
-                    <Range name="hue" label={lang.Hue} />
+                    <Range onChange={(e) => onChangeFilterValue(e, 6, "contrast")} value={selectedFilters[6].contrast} name="contrast" label={lang.Contrast} min="-1" max="1" step="0.003921" />
+                    <Range onChange={(e) => onChangeFilterValue(e, 7, "saturation")} value={selectedFilters[7].saturation} name="saturation" label={lang.Saturation} min="-1" max="1" step="0.003921" />
+                    <Range onChange={(e) => onChangeFilterValue(e, 21, "rotation")} value={selectedFilters[21].rotation} name="hue" label={lang.Hue} min="-2" max="2" step="0.002" />
                     <Range name="noise" label={lang.Noise} />
                     <Range name="pixelate" label={lang.Pixelate} />
                     <Range name="blur" label={lang.Blur} />

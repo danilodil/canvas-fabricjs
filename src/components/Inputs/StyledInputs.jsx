@@ -13,6 +13,11 @@ export const StyledCheck = styled.label`
   -ms-user-select: none;
   user-select: none;
 
+  &.disabled {
+    opacity: 0.5;
+    pointer-events:none;
+  }
+
   input {
     position: absolute;
     opacity: 0;
@@ -80,6 +85,11 @@ export const StyledRadio = styled.label`
   -ms-user-select: none;
   user-select: none;
 
+  &.disabled {
+    opacity: 0.5;
+    pointer-events:none;
+  }
+
   input {
     position: absolute;
     opacity: 0;
@@ -134,6 +144,11 @@ export const StyledRange = styled.div`
   margin-bottom: ${({ theme }) => theme.inputs.spacer};
   font-size: 0.875rem;
   display: flex;
+
+  &.disabled {
+    opacity: 0.5;
+    pointer-events:none;
+  }
 
   input {
     width: 100%;
