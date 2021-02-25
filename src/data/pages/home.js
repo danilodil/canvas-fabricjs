@@ -7,6 +7,7 @@ export const page = {
       {name: "original.jpg"},
       {name: "Big_Buck_Bunny.mp4"},
       {name: "loader.gif"},
+      {name: "splash.png"},
     ],
     fonts: [
       { value: "Times New Roman", label:"Times New Roman"},

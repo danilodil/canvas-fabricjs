@@ -20,7 +20,7 @@ import { jsPDF } from "jspdf";
 import { Check, Radio, Range, Color, RadioC } from "../../components/Inputs";
 import { Block } from "../../components/Block";
 import ScrollBarWrapper from "../../components/ScrollBarWrapper";
-import { filterIt } from "../../utils";
+import { filterIt, capitalize } from "../../utils";
 
 const Editor = ({ data }) => {
 
@@ -53,19 +53,19 @@ const Editor = ({ data }) => {
     { name: 'brightness', checked: false },
     { name: 'contrast', checked: false, contrast: 0 },
     { name: 'saturation', checked: false, saturation: 0 },
-    { name: 'noise', checked: false },
+    { name: 'noise', checked: false, noise: 0 },
     { name: 'vintage', checked: false },
-    { name: 'pixelate', checked: false },
-    { name: 'blur', checked: false },
+    { name: 'pixelate', checked: false, blocksize: 0 },
+    { name: 'blur', checked: false, blur: 0 },
     { name: 'sharpen', checked: false },
     { name: 'emboss', checked: false },
     { name: 'technicolor', checked: false },
     { name: 'polaroid', checked: false },
-    { name: 'blend-color', checked: false },
+    { name: 'blend-color', checked: false, color: "#fc1d1d", mode: "add", alpha: 1 },
     { name: 'gamma', checked: false, red: 1, green: 1, blue: 1 },
     { name: 'kodachrome', checked: false },
     { name: 'blackwhite', checked: false },
-    { name: 'blend-image', checked: false },
+    { name: 'blend-image', checked: false, color: "#fc1d1d", mode: "mask", alpha: 1 },
     { name: 'hue', checked: false, rotation: 0 },
     { name: 'resize', checked: false },
   ]
@@ -490,6 +490,19 @@ const Editor = ({ data }) => {
     canvas.renderAll();
   }
 
+  const removeFilter = (index) => {
+    const obj = canvas.getActiveObject();
+    obj.filters[index] = false;
+    obj.applyFilters();
+    canvas.getActiveObject().height;
+    canvas.renderAll();
+  }
+
+  const checkFilter = (index) => {
+    const obj = canvas.getActiveObject();
+    return obj.filters[index];
+  }
+
   const applyFilterValue = (index, prop, value) => {
     const obj = canvas.getActiveObject();
     if (obj.filters[index]) {
@@ -500,38 +513,93 @@ const Editor = ({ data }) => {
     }
   }
 
+  const getImage = () => {
+
+    const imageElement = document.createElement('img');
+    imageElement.src = `../assets/img/splash.png`;
+    const fImage = new fabric.Image(imageElement);
+    fImage.scaleX = 1;
+    fImage.scaleY = 1;
+    fImage.top = 15;
+    fImage.left = 15;
+
+    return fImage;
+  }
+
   const onChangeFilter = (e) => {
     const name = e.target.name;
+    const checked = e.target.checked;
     const index = filters.indexOf(name);
     const filt = filterIt(selectedFilters, name, "name")[0];
 
     switch (name) {
       case "remove-color":
 
-        applyFilter(index, e.target.checked && getFilterByName(name, {
+        applyFilter(index, checked && getFilterByName(name, {
           distance: filt.distance,
           color: filt.color,
         }));
-        setSelectedFilters(selectedFilters.map((filter, i) => i == index ? { ...filter, checked: e.target.checked } : filter));
 
         break;
+
+      case "blend-color":
+
+        applyFilter(index, checked && getFilterByName(name, {
+          color: filt.color,
+          mode: filt.mode.toLowerCase(),
+          alpha: filt.alpha,
+        }));
+
+        break;
+
+      case "blend-image":
+
+        applyFilter(index, checked && getFilterByName(name, {
+          image: getImage(),
+          mode: filt.mode,
+          alpha: filt.alpha,
+        }));
+
+        break;
+
       case "gamma":
 
-        applyFilter(index, e.target.checked && getFilterByName(name, {
+        applyFilter(index, checked && getFilterByName(name, {
           gamma: [filt.red, filt.green, filt.blue]
         }));
-        setSelectedFilters(selectedFilters.map((filter, i) => i == index ? { ...filter, checked: e.target.checked } : filter));
 
         break;
+
+      case "sharpen":
+
+        applyFilter(index, checked && getFilterByName(name, {
+          matrix: [0, -1, 0,
+            -1, 5, -1,
+            0, -1, 0]
+        }));
+
+        break;
+
+      case "emboss":
+
+        applyFilter(index, checked && getFilterByName(name, {
+          matrix: [1, 1, 1,
+            1, 0.7, -1,
+            -1, -1, -1]
+        }));
+
+        break;
+
       default:
-        applyFilter(index, e.target.checked && getFilterByName(name));
-        setSelectedFilters(selectedFilters.map((filter, i) => i == index ? { ...filter, checked: e.target.checked } : filter));
+        applyFilter(index, checked && getFilterByName(name));
         break;
     }
+
+    setSelectedFilters(selectedFilters.map((filter, i) => i == index ? { ...filter, checked: checked } : filter));
   }
 
   const onChangeFilterValue = (e, i, key, type, typeV) => {
-    let value = e.target.value;
+    let value = e.target.value.toLowerCase();
     let temp = selectedFilters.map((filter) => filter);
     let current = null;
 
@@ -546,25 +614,41 @@ const Editor = ({ data }) => {
         break;
     }
 
-    switch (key) {
-      case "contrast":
-        applyFilter(6, getFilterByName(key, {
-          contrast: parseFloat(value)
-        }));
-        break;
-      case "saturation":
-        applyFilter(7, getFilterByName(key, {
-          saturation: parseFloat(value)
-        }));
-        break;
-      case "rotation":
-        applyFilter(21, getFilterByName(key, {
-          saturation: parseFloat(value)
-        }));
-        break;
+    if (!checkFilter(i)) {
+      switch (key) {
+        case "contrast":
+        case "saturation":
+        case "rotation":
+          applyFilter(i, getFilterByName(key, {}[key] = parseFloat(value)));
+          break;
+        case "noise":
+          if (value == 0) {
+            removeFilter(i);
+          } else {
+            applyFilter(i, getFilterByName(key, {}[key] = parseInt(value, 10)));
+          }
+        case "blocksize":
+          applyFilter(i, getFilterByName(key, {}[key] = value));
+          break;
+        case "blur":
+          applyFilter(i, getFilterByName(key, {}[key] = parseFloat(value)));
+          break;
+      }
+    } else {
+      switch (key) {
+        case "noise":
+          if (value == 0) { removeFilter(i) }
+        case "blocksize":
+          if (value == 0) { removeFilter(i) }
+          break;
+        case "blur":
+          if (value == 0) { removeFilter(i) }
+          break;
+
+      }
     }
 
-    applyFilterValue(i, type ? type : key, value);
+    if (checkFilter(i)) applyFilterValue(i, type ? type : key, value);
     setSelectedFilters(temp);
   };
 
@@ -598,6 +682,20 @@ const Editor = ({ data }) => {
         return new f.current.Saturation(options);
       case "rotation":
         return new f.current.HueRotation(options);
+      case "noise":
+        return new f.current.Noise(options);
+      case "blocksize":
+        return new f.current.Pixelate(options);
+      case "blur":
+        return new f.current.Blur(options);
+      case "emboss":
+        return new f.current.Convolute(options);
+      case "sharpen":
+        return new f.current.Convolute(options);
+      case "blend-color":
+        return new f.current.BlendColor(options);
+      case "blend-image":
+        return new f.current.BlendImage(options);
     }
   }
 
@@ -627,6 +725,21 @@ const Editor = ({ data }) => {
         }
         if (elm && elm.rotation) {
           temp[i]["rotation"] = elm.rotation;
+        }
+        if (elm && elm.noise) {
+          temp[i]["noise"] = elm.noise;
+        }
+        if (elm && elm.blocksize) {
+          temp[i]["blocksize"] = elm.blocksize;
+        }
+        if (elm && elm.blur) {
+          temp[i]["blur"] = elm.blur;
+        }
+        if (elm && elm.alpha) {
+          temp[i]["alpha"] = elm.alpha;
+        }
+        if (elm && elm.color) {
+          temp[i]["color"] = elm.color;
         }
       })
 
@@ -735,7 +848,7 @@ const Editor = ({ data }) => {
                   <Spacer />
 
                   <Block>
-                    <Check onChange={onChangeFilter} name="gamma" label={lang.Gamma} />
+                    <Check checked={isFilterChecked("gamma")} onChange={onChangeFilter} name="gamma" label={lang.Gamma} />
                     <Range disabled={!isFilterChecked("gamma")} onChange={(e) => onChangeFilterValue(e, 17, "red", "gamma", 0)} value={selectedFilters[17].red} name="gamma-red" label={lang.Red} min="0.2" max="2.2" step="0.003921" />
                     <Range disabled={!isFilterChecked("gamma")} onChange={(e) => onChangeFilterValue(e, 17, "green", "gamma", 1)} value={selectedFilters[17].green} name="gamma-green" label={lang.Green} min="0.2" max="2.2" step="0.003921" />
                     <Range disabled={!isFilterChecked("gamma")} onChange={(e) => onChangeFilterValue(e, 17, "blue", "gamma", 2)} value={selectedFilters[17].blue} name="gamma-blue" isRemoveSpace={true} label={lang.Blue} min="0.2" max="2.2" step="0.003921" />
@@ -747,30 +860,30 @@ const Editor = ({ data }) => {
                     <Range onChange={(e) => onChangeFilterValue(e, 6, "contrast")} value={selectedFilters[6].contrast} name="contrast" label={lang.Contrast} min="-1" max="1" step="0.003921" />
                     <Range onChange={(e) => onChangeFilterValue(e, 7, "saturation")} value={selectedFilters[7].saturation} name="saturation" label={lang.Saturation} min="-1" max="1" step="0.003921" />
                     <Range onChange={(e) => onChangeFilterValue(e, 21, "rotation")} value={selectedFilters[21].rotation} name="hue" label={lang.Hue} min="-2" max="2" step="0.002" />
-                    <Range name="noise" label={lang.Noise} />
-                    <Range name="pixelate" label={lang.Pixelate} />
-                    <Range name="blur" label={lang.Blur} />
-                    <Check name="sharpen" label={lang.Sharpen} />
-                    <Check name="emboss" isRemoveSpace={true} label={lang.Emboss} />
+                    <Range onChange={(e) => onChangeFilterValue(e, 8, "noise")} name="noise" label={lang.Noise} value={selectedFilters[8].noise} min="0" max="1000" step="1" />
+                    <Range onChange={(e) => onChangeFilterValue(e, 10, "blocksize")} value={selectedFilters[10].blocksize} name="pixelate" label={lang.Pixelate} min="0" max="20" step="1" />
+                    <Range onChange={(e) => onChangeFilterValue(e, 11, "blur")} name="blur" value={selectedFilters[11].blur} label={lang.Blur} min="0" max="1" step="0.01" />
+                    <Check checked={isFilterChecked("sharpen")} onChange={onChangeFilter} name="sharpen" label={lang.Sharpen} />
+                    <Check checked={isFilterChecked("emboss")} onChange={onChangeFilter} name="emboss" isRemoveSpace={true} label={lang.Emboss} />
                   </Block>
 
                   <Spacer />
 
                   <Block>
-                    <Check name="blendcolor" label={lang.BlendColor} />
-                    <Select name="blendcolor-mode" defaultValue={data.blendModes[0]} placeholder={lang.Mode} options={data.blendModes} />
+                    <Check checked={isFilterChecked("blend-color")} onChange={onChangeFilter} name="blend-color" label={lang.BlendColor} />
+                    <Select disabled={!isFilterChecked("blend-color")} onChange={(e) => onChangeFilterValue({ target: { value: e.value } }, 16, "mode")} name="blendcolor-mode" value={{ value: capitalize(selectedFilters[16].mode), label: capitalize(selectedFilters[16].mode) }} placeholder={lang.Mode} options={data.blendModes} />
                     <Spacer variant="input" />
-                    <Color name="blendcolor-color" label={lang.Color} />
-                    <Range name="blendcolor-alpha" isRemoveSpace={true} label={lang.Alpha} />
+                    <Color value={selectedFilters[16].color} onChange={(e) => onChangeFilterValue(e, 16, "color")} disabled={!isFilterChecked("blend-color")} name="blendcolor-color" label={lang.Color} />
+                    <Range disabled={!isFilterChecked("blend-color")} onChange={(e) => onChangeFilterValue(e, 16, "alpha")} name="blendcolor-alpha" value={selectedFilters[16].alpha} isRemoveSpace={true} label={lang.Alpha} min="0" max="1" step="0.01" />
                   </Block>
 
                   <Spacer />
 
                   <Block>
-                    <Check name="blendimage" label={lang.BlendImage} />
-                    <Select name="blendimage-mode" defaultValue={data.maskModes[0]} placeholder={lang.Mode} options={data.maskModes} />
+                    <Check checked={isFilterChecked("blend-image")} onChange={onChangeFilter} name="blend-image" label={lang.BlendImage} />
+                    <Select disabled={!isFilterChecked("blend-image")} onChange={(e) => onChangeFilterValue({ target: { value: e.value } }, 20, "mode")} name="blend-image-mode" value={{ value: capitalize(selectedFilters[20].mode), label: capitalize(selectedFilters[20].mode) }} placeholder={lang.Mode} options={data.maskModes} />
                     <Spacer variant="input" />
-                    <Range name="blendimage-alpha" isRemoveSpace={true} label={lang.Alpha} />
+                    <Range disabled={!isFilterChecked("blend-image")} onChange={(e) => onChangeFilterValue(e, 20, "alpha")} name="blend-image-alpha" value={selectedFilters[20].alpha} isRemoveSpace={true} label={lang.Alpha} min="0" max="1" step="0.01" />
                   </Block>
                 </form>
               </ScrollBarWrapper>
