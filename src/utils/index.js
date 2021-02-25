@@ -16,6 +16,15 @@ export const filterIt = (array, value, key) => {
   );
 }
 
+export const filterItIndex = (array, value, key) => {
+  let index = -1;
+  array.forEach((elm, i) => {
+    if(elm[key] == value) index = i;
+  });
+
+  return index;
+}
+
 export const isObjectEmpty = (obj) => {
 	return Object.keys(obj).length === 0 && obj.constructor === Object;
  }
