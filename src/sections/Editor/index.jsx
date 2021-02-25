@@ -84,7 +84,8 @@ const Editor = ({ data }) => {
       setSelectedFilters(defaultFilters);
       setSelected(e.target)
       setFilterTab(e.target);
-      console.log(e.target)
+      console.log(e.target);
+      autoSave.save();
     }
     );
 
