@@ -159,7 +159,7 @@ const Editor = ({ data }) => {
   }
 
   const addGif = async (e, drag) => {
-    const gif = await fabricGif(drag ? e.src : `../assets/img/${e}`, appConfig.initialImageSize / 2, appConfig.initialImageSize / 2);
+    const gif = await fabricGif(drag ? e.src : `${e}`, appConfig.initialImageSize / 2, appConfig.initialImageSize / 2);
     gif.set({ top: drag ? drag.layerY - appConfig.initialImageSize / 4 : 50, left: drag ? drag.layerX - appConfig.initialImageSize / 4 : 50 });
     canvas.add(gif);
     onAdded();
@@ -167,21 +167,29 @@ const Editor = ({ data }) => {
 
   const addImg = (e, drag) => {
     if (drag) {
-      const newImage = new fabric.Image(dragedImage.current, {
-        left: drag.layerX - appConfig.initialImageSize / 2,
-        top: drag.layerY - appConfig.initialImageSize / 2
-      });
 
-      newImage.scaleToWidth(appConfig.initialImageSize);
-      canvas.add(newImage);
-      onAdded();
+      fabric.Image.fromURL(`${dragedImage.current.src}`, (img) => {
+        img.scaleToWidth(appConfig.initialImageSize);
+        img.set({left:drag.layerX - appConfig.initialImageSize / 2, top: drag.layerY - appConfig.initialImageSize / 2})
+        canvas.add(img);
+        onAdded();
+      }, {crossOrigin: 'anonymous'});
+
+      // const newImage = new fabric.Image(dragedImage.current, {
+      //   left: drag.layerX - appConfig.initialImageSize / 2,
+      //   top: drag.layerY - appConfig.initialImageSize / 2
+      // }, {crossOrigin: 'anonymous'});
+
+      // newImage.scaleToWidth(appConfig.initialImageSize);
+      // canvas.add(newImage);
+      // onAdded();
 
     } else {
-      fabric.Image.fromURL(`../assets/img/${e}`, (img) => {
+      fabric.Image.fromURL(`${e}`, (img) => {
         img.scaleToWidth(appConfig.initialImageSize);
         canvas.add(img);
         onAdded();
-      });
+      }, {crossOrigin: 'anonymous'});
     }
   }
 
@@ -312,7 +320,7 @@ const Editor = ({ data }) => {
         addGif(e, drag);
         break;
       case "mp4":
-        addVideo(`../assets/img/${drag ? dragedImageName.current : e}`, drag ? dragedImage.current : elm, drag);
+        addVideo(`${drag ? dragedImageName.current : e}`, drag ? dragedImage.current : elm, drag);
         break;
       case "jpg":
       case "jpeg":

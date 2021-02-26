@@ -48,7 +48,7 @@ const ImagesSelector = ({ onSelect, data, onImagesAdded, onImageStartDrag, onIma
     const imgs = [];
     data.map((img, i) => {
       imgs.push(
-        <StyledImage draggable={true} key={`si-${i}`} onDragStart={(e) => onDragStart(e, i, img.Key)} onDragEnd={(e) => onDragEnd(e, i, img.Key)} onClick={() => onSelect(img.Key, imgRefs[i].current)}>
+        <StyledImage draggable={true} key={`si-${i}`} onDragStart={(e) => onDragStart(e, i, img.src)} onDragEnd={(e) => onDragEnd(e, i, img.src)} onClick={() => onSelect(img.src, imgRefs[i].current)}>
           {renderAsset(img.Key, i, img.src)}
         </StyledImage>)
 
