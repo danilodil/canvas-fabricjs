@@ -175,15 +175,6 @@ const Editor = ({ data }) => {
         onAdded();
       }, {crossOrigin: 'anonymous'});
 
-      // const newImage = new fabric.Image(dragedImage.current, {
-      //   left: drag.layerX - appConfig.initialImageSize / 2,
-      //   top: drag.layerY - appConfig.initialImageSize / 2
-      // }, {crossOrigin: 'anonymous'});
-
-      // newImage.scaleToWidth(appConfig.initialImageSize);
-      // canvas.add(newImage);
-      // onAdded();
-
     } else {
       fabric.Image.fromURL(`${e}`, (img) => {
         img.scaleToWidth(appConfig.initialImageSize);
