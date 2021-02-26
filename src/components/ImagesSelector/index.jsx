@@ -1,11 +1,10 @@
-import React, { useState, createRef, useContext } from "react";
+import React, { useState, createRef, useContext, useEffect } from "react";
 import { StyledImagesSelector, StyledImage, StyledImagePreloader, StyledImageDrop } from "./StyledImagesSelector";
 import { getExt } from "../../utils";
 import ScrollBarWrapper from "../ScrollBarWrapper";
 import {Context} from "../../context/context";
 import languages from "../../configs/languages";
 import appConfig from "../../configs/appConfig";
-import { useEffect } from "react/cjs/react.development";
 
 const ImagesSelector = ({ onSelect, data, onImagesAdded, onImageStartDrag, onImageStopDrag }) => {
 
