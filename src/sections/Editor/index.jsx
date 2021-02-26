@@ -767,14 +767,14 @@ const Editor = ({ data }) => {
 
   return (
     <Layout>
-      <StyledEditor onDragOver={() => setActiveDrop(true)} onDragLeave={() => setActiveDrop(false)} onDrop={(e)=>!state.isDragFromSidebar ? onDropFile(e) : setActiveDrop(false)}>
+      <StyledEditor  onDragOver={() => setActiveDrop(true)} onDragLeave={() => setActiveDrop(false)} onDrop={(e)=>!state.isDragFromSidebar ? onDropFile(e) : setActiveDrop(false)}>
         <StyledActiveDrop className={`${activeDrop && !state.isDragFromSidebar ? "active-drop" : ""}`}>
           <span>{lang.Dropfileshere}</span>
         </StyledActiveDrop>
         <Canvas className={`${isDragOverCanvas ? "over" : ""}`}>
           <canvas id="canvas" />
         </Canvas>
-        <Sidebar isActive={true}>
+        <Sidebar isActive={true} disabled={activeDrop}>
           <Tabs activeTab={activeTab}>
             <Tab name={lang.Controls}>
               <TabActions>

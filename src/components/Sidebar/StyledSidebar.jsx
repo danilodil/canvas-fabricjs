@@ -13,6 +13,10 @@ export const StyledSidebar = styled.div`
   transition: transform ${({ theme }) => theme.transitions.transition} ${({ theme }) => theme.transitions.transitionTiming};
   z-index: 5;
 
+  &.disabled {
+    pointer-events:none;
+  }
+
   @media (max-width: ${responsive.md}) {
     width: 100vw;
     height: 100vh;
