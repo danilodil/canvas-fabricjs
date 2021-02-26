@@ -1,11 +1,15 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { StyledTabs, StyledTabsNav, StyledTabsNavItem } from "./StyledTabs";
 
 const Tabs = (props) => {
 
-  const { children } = props;
+  const { children, activeTab } = props;
   const [tabs, setTabs] = useState(children.map((child) => child.props.name));
-  const [active, setActive] = useState(0)
+  const [active, setActive] = useState(activeTab ? activeTab : 0)
+
+  useEffect(()=>{
+    setActive(activeTab);
+  }, [activeTab])
 
   const renderTab = (tab, i) => {
     if (active == i) {

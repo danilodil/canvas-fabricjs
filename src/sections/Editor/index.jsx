@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from "react"
-import { StyledEditor } from "./StyledEditor"
+import { StyledEditor, StyledActiveDrop } from "./StyledEditor"
 import { Layout, Container, Row, Col } from "../../components/Layout"
 import Sidebar from "../../components/Sidebar"
 import Canvas from "../../components/Canvas"
@@ -21,6 +21,7 @@ import { Check, Radio, Range, Color, RadioC } from "../../components/Inputs";
 import { Block } from "../../components/Block";
 import ScrollBarWrapper from "../../components/ScrollBarWrapper";
 import { filterIt, capitalize, filterItIndex } from "../../utils";
+import AWSService from "../../plugins/aws";
 
 const Editor = ({ data }) => {
 
@@ -37,11 +38,12 @@ const Editor = ({ data }) => {
   const [text, setText] = useState("Lorem ipsum, or lipsum as it is sometimes known");
   const [selected, setSelected] = useState(null);
   const [exportFormat, setExportFormat] = useState(data.exports[0]);
-  const [filters] = useState(data.filterNames)
   const [defaultFilters] = useState(data.filters);
   const [selectedFilters, setSelectedFilters] = useState(defaultFilters);
   const filersRef = useRef(null);
   const delayAutosave = useRef(false);
+  const [activeDrop, setActiveDrop] = useState(false);
+  const [activeTab, setActiveTab] = useState(0);
 
   useEffect(() => {
 
@@ -59,6 +61,8 @@ const Editor = ({ data }) => {
     document.addEventListener('keyup', onKeyUp, false);
     document.addEventListener('copy', onCopy);
     document.addEventListener('paste', onPaste);
+
+    AWSService.init();
 
     return () => {
       window.removeEventListener('resize', resizeCanvas, false);
@@ -499,11 +503,11 @@ const Editor = ({ data }) => {
       canvas.renderAll();
     }
 
-    if(!delayAutosave.current) {
+    if (!delayAutosave.current) {
       autoSave.save();
       delayAutosave.current = true;
 
-      setTimeout(()=>{
+      setTimeout(() => {
         delayAutosave.current = false;
       }, [1000])
     }
@@ -746,14 +750,32 @@ const Editor = ({ data }) => {
     return filterIt(selectedFilters, type, "type")[0];
   }
 
+  const onDropFile = (e) => {
+    e.preventDefault();
+    setActiveDrop(false);
+    setActiveTab(1);
+
+    AWSService.addPhoto("Test", e.dataTransfer.files).then(
+      (data) => {
+        console.log("Successfully uploaded photo.");
+        viewAlbum(albumName);
+      },
+      (err) => {
+        return console.log("There was an error uploading your photo: ", err.message);
+      })
+  }
+
   return (
     <Layout>
-      <StyledEditor>
+      <StyledEditor onDragOver={() => setActiveDrop(true)} onDragLeave={() => setActiveDrop(false)} onDrop={onDropFile}>
+        <StyledActiveDrop className={`${activeDrop ? "active-drop" : ""}`}>
+          <span>{lang.Dropfileshere}</span>
+        </StyledActiveDrop>
         <Canvas className={`${isDragOverCanvas ? "over" : ""}`}>
           <canvas id="canvas" />
         </Canvas>
         <Sidebar isActive={true}>
-          <Tabs>
+          <Tabs activeTab={activeTab}>
             <Tab name={lang.Controls}>
               <TabActions>
                 <Button title={lang.Changemode} variant={`${!isDrawing ? "success-light" : "light"}`} onClick={onChangeMode}>

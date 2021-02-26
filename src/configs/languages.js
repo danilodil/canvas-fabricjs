@@ -51,7 +51,8 @@ const languages = {
     BlendColor: "Blend Color",
     Mode: "Mode",
     Alpha: "Alpha",
-    BlendImage: "Blend Image"
+    BlendImage: "Blend Image",
+    Dropfileshere: "Drop files here"
   }
 }
 

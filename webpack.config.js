@@ -64,7 +64,7 @@ let configDev = {
             }
           }
         ]
-      }
+      },
     ]
   },
   resolve: { extensions: ["*", ".js", ".jsx"] },
@@ -169,7 +169,7 @@ let configProd = {
     ]),
     new HtmlWebpackPlugin({
       template: './src/index.html',
-      filename: path.resolve('dist')+'/index.html'
+      filename: path.resolve('dist') + '/index.html'
     }),
   ]
 }
