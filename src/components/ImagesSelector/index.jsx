@@ -1,33 +1,47 @@
-import React, { useState, createRef } from "react";
-import { StyledImagesSelector, StyledImage } from "./StyledImagesSelector";
+import React, { useState, createRef, useContext } from "react";
+import { StyledImagesSelector, StyledImage, StyledImagePreloader, StyledImageDrop } from "./StyledImagesSelector";
 import { getExt } from "../../utils";
 import ScrollBarWrapper from "../ScrollBarWrapper";
+import {Context} from "../../context/context";
+import languages from "../../configs/languages";
+import appConfig from "../../configs/appConfig";
+import { useEffect } from "react/cjs/react.development";
 
 const ImagesSelector = ({ onSelect, data, onImagesAdded, onImageStartDrag, onImageStopDrag }) => {
 
-  const [imgRefs] = useState(data.map(() => createRef()));
+  const [imgRefs, setimgRefs] = useState(data?.map(() => createRef()));
+  const {notification, dispatchState} = useContext(Context);
+  const lang = languages[appConfig.lang];
+
+  useEffect(()=>{
+    if(data) setimgRefs(data?.map(() => createRef()));
+  },[data])
 
   const onDragStart = (e, i, name) => {
+    dispatchState({type:"SET_APP_VALUES", data:{isDragFromSidebar:true}})
     e.target.classList.add("draging");
     if (onImageStartDrag) onImageStartDrag(imgRefs[i].current, name);
   }
 
   const onDragEnd = (e, i, name) => {
+    setTimeout(() => {
+      dispatchState({type:"SET_APP_VALUES", data:{isDragFromSidebar:false}})
+    }, 1000);
     e.target.classList.remove("draging");
     if (onImageStopDrag) onImageStopDrag(imgRefs[i].current, name);
   }
 
-  const renderAsset = (name, i) => {
+  const renderAsset = (name, i, src) => {
     const ext = getExt(name);
 
     switch (ext) {
       case "mp4":
         return <video ref={imgRefs[i]} draggable={true} loop autoPlay muted>
-          <source src={`../assets/img/${name}`} type="video/mp4" />
+          <source src={`${src}`} type="video/mp4" />
               Your browser does not support the video tag.
         </video>
       default:
-        return <img ref={imgRefs[i]} draggable={true} src={`../assets/img/${name}`} alt="" />
+        return <img ref={imgRefs[i]} draggable={true} src={`${src}`} alt="" />
     }
   }
 
@@ -35,8 +49,8 @@ const ImagesSelector = ({ onSelect, data, onImagesAdded, onImageStartDrag, onIma
     const imgs = [];
     data.map((img, i) => {
       imgs.push(
-        <StyledImage draggable={true} key={`si-${i}`} onDragStart={(e) => onDragStart(e, i, img.name)} onDragEnd={(e) => onDragEnd(e, i, img.name)} onClick={() => onSelect(img.name, imgRefs[i].current)}>
-          {renderAsset(img.name, i)}
+        <StyledImage draggable={true} key={`si-${i}`} onDragStart={(e) => onDragStart(e, i, img.Key)} onDragEnd={(e) => onDragEnd(e, i, img.Key)} onClick={() => onSelect(img.Key, imgRefs[i].current)}>
+          {renderAsset(img.Key, i, img.src)}
         </StyledImage>)
 
       if (i === data.length - 1) {
@@ -50,7 +64,8 @@ const ImagesSelector = ({ onSelect, data, onImagesAdded, onImageStartDrag, onIma
   return (
     <ScrollBarWrapper>
       <StyledImagesSelector>
-        {render()}
+        {notification.uploadImageProgress != 0 && <StyledImagePreloader value={notification.uploadImageProgress}/>}
+        {data?.length > 0 ? render() : <StyledImageDrop>{lang.Dropfileshere}</StyledImageDrop>}
       </StyledImagesSelector>
     </ScrollBarWrapper>
   );

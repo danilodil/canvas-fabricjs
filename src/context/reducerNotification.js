@@ -1,6 +1,6 @@
 export default function (state, action) {
   switch (action.type) {
-    case 'SET_APP_VALUES':
+    case 'SET_VALUES':
       return {
         ...state,
         ...action.data

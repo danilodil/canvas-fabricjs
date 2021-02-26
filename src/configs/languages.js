@@ -52,7 +52,7 @@ const languages = {
     Mode: "Mode",
     Alpha: "Alpha",
     BlendImage: "Blend Image",
-    Dropfileshere: "Drop files here"
+    Dropfileshere: "Drop files here",
   }
 }
 

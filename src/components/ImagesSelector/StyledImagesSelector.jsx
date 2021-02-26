@@ -46,3 +46,38 @@ export const StyledImage = styled.div`
   }
 `
 
+export const StyledImagePreloader = styled.div`
+  width: 100%;
+  height: 300px;
+  margin-bottom: 1rem;
+  position: relative;
+  padding: 2rem;
+  background-color: ${({theme}) => theme.colors.lgray};
+  border: 1px solid transparent;
+
+  &:after{
+    position: absolute;
+    content: '';
+    width: calc(${({value}) => value}% - 4rem);
+    height: 5px;
+    position: absolute;
+    border-radius: 2px;
+    top: 50%;
+    transform: translateY(-50%);
+    left: 2rem;
+    display: block;
+    background-color: ${({theme}) => theme.colors.primary};
+    transition: width ${({theme}) => theme.transitions.transition} ease;
+  }
+`
+
+export const StyledImageDrop = styled.div`
+  width: 100%;
+  height: 300px;
+  position: relative;
+  padding: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px dashed ${({theme}) => theme.colors.lgray};
+`

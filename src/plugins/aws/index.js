@@ -1,12 +1,16 @@
 import 'aws-sdk/dist/aws-sdk';
 const AWS = window.AWS;
 import appConfig from "../../configs/appConfig";
+import shortid from 'shortid';
+import {sortByDate} from "../../utils/index";
 
 const AWSService = {
 
   s3: null,
+  id: null,
+  dispatch: null,
 
-  init() {
+  init(dispatch) {
     AWS.config.update({
       region: appConfig.bucketRegion,
       credentials: new AWS.CognitoIdentityCredentials({
@@ -15,19 +19,27 @@ const AWSService = {
     });
 
     this.s3 = new AWS.S3({
-      apiVersion: "2006-03-01",
       params: { Bucket: appConfig.albumBucketName }
     });
 
+    this.id = localStorage.getItem('id');
+
+    if (!this.id) {
+      this.id = shortid.generate();
+      localStorage.setItem('id', this.id);
+    }
+
+    this.dispatch = dispatch;
+
   },
 
-  addPhoto(albumName, files) {
+  addPhoto(files) {
     if (!files.length) {
       return console.log("Please choose a file to upload first.");
     }
     const file = files[0];
     const fileName = file.name;
-    const albumPhotosKey = encodeURIComponent(albumName) + "/";
+    const albumPhotosKey = encodeURIComponent(this.id) + "/";
 
     const photoKey = albumPhotosKey + fileName;
 
@@ -38,16 +50,44 @@ const AWSService = {
         Key: photoKey,
         Body: file
       }
-    });
+    }).on('httpUploadProgress', (evt) => {
 
-    // .on('httpUploadProgress', function(evt) {
-    //   console.log("Uploaded :: " + parseInt((evt.loaded * 100) / evt.total)+'%');
-    // })
+      const p = parseInt((evt.loaded * 100) / evt.total);
+
+      this.dispatch({ type: "SET_VALUES", data: { uploadImageProgress: p } });
+
+      if (p == 100) {
+        setTimeout(() => {
+          this.dispatch({ type: "SET_VALUES", data: { uploadImageProgress: 0 } });
+        }, 100);
+      }
+    });
 
     const promise = upload.promise();
 
     return promise;
   },
+
+  getObjects(callback) {
+    const albumPhotosKey = encodeURIComponent(this.id) + "/";
+
+    this.s3.listObjects({ Prefix: albumPhotosKey }, (err, data) => {
+      if (err) {
+        return alert("There was an error viewing your album: " + err.message);
+      }
+
+      sortByDate(data.Contents, "LastModified")
+
+      const d = data.Contents.map((photo) => ({ ...photo, src: this.getUrlFromBucket(photo.Key) }));
+      callback(d);
+    });
+
+  },
+
+  getUrlFromBucket(fileName) {
+    const regionString = appConfig.bucketRegion.includes('us-east-1') ? '' : (appConfig.bucketRegion)
+    return `https://${appConfig.albumBucketName}.s3.${regionString}.amazonaws.com/${fileName}`
+  }
 }
 
 export default AWSService;

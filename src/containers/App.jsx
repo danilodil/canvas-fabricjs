@@ -11,6 +11,7 @@ import theme from "../theme/light";
 SmoothScrollbar.use(StopScrollPlugin);
 
 import "../styles/style.scss";
+import reducerNotification from "../context/reducerNotification";
 
 const App = () => {
 
@@ -22,6 +23,11 @@ const App = () => {
     isPause: false,
     isDisabledPreloader: false,
     position: { x: 3, y: 2 },
+    isDragFromSidebar: false,
+  });
+
+  const [notification, dispatchNotification] = useReducer(reducerNotification, {
+    uploadImageProgress: 0,
   });
 
   const [components, setComponents] = useState([]);
@@ -59,7 +65,7 @@ const App = () => {
 
   return (
     <ThemeProvider theme={theme}>
-      <Context.Provider value={{ state }}>
+      <Context.Provider value={{ state, notification, dispatchNotification, dispatchState }}>
         <Suspense fallback={<>Loading</>}>
           <Pseudorouter isPause={state.isPause} isDisabledPreloader={state.isDisabledPreloader}>
             {state.isShowContent && components}

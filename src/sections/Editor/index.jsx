@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react"
+import React, { useEffect, useState, useRef, useContext } from "react"
 import { StyledEditor, StyledActiveDrop } from "./StyledEditor"
 import { Layout, Container, Row, Col } from "../../components/Layout"
 import Sidebar from "../../components/Sidebar"
@@ -22,9 +22,11 @@ import { Block } from "../../components/Block";
 import ScrollBarWrapper from "../../components/ScrollBarWrapper";
 import { filterIt, capitalize, filterItIndex } from "../../utils";
 import AWSService from "../../plugins/aws";
+import { Context } from "../../context/context";
 
 const Editor = ({ data }) => {
 
+  const {state, dispatchNotification} = useContext(Context);
   const [canvas, setCanvas] = useState('');
   const canvasRef = useRef(null);
   const f = useRef(null);
@@ -44,6 +46,7 @@ const Editor = ({ data }) => {
   const delayAutosave = useRef(false);
   const [activeDrop, setActiveDrop] = useState(false);
   const [activeTab, setActiveTab] = useState(0);
+  const [images, setImages] = useState([]);
 
   useEffect(() => {
 
@@ -62,7 +65,10 @@ const Editor = ({ data }) => {
     document.addEventListener('copy', onCopy);
     document.addEventListener('paste', onPaste);
 
-    AWSService.init();
+    AWSService.init(dispatchNotification);
+    AWSService.getObjects((data)=>{
+      setImages(data)
+    })
 
     return () => {
       window.removeEventListener('resize', resizeCanvas, false);
@@ -131,17 +137,9 @@ const Editor = ({ data }) => {
     if (e.keyCode == 46) deleteObject();
   }
 
-  const onUndo = () => {
-    canvas.undo()
-  }
-
-  const onRedo = () => {
-    canvas.redo()
-  }
-
-  const onAdded = () => {
-    autoSave.save();
-  }
+  const onUndo = () => canvas.undo()
+  const onRedo = () => canvas.redo()
+  const onAdded = () => autoSave.save()
 
   const onDrop = (e) => {
 
@@ -755,10 +753,12 @@ const Editor = ({ data }) => {
     setActiveDrop(false);
     setActiveTab(1);
 
-    AWSService.addPhoto("Test", e.dataTransfer.files).then(
+    AWSService.addPhoto(e.dataTransfer.files).then(
       (data) => {
         console.log("Successfully uploaded photo.");
-        viewAlbum(albumName);
+        AWSService.getObjects((data)=>{
+          setImages(data)
+        })
       },
       (err) => {
         return console.log("There was an error uploading your photo: ", err.message);
@@ -767,8 +767,8 @@ const Editor = ({ data }) => {
 
   return (
     <Layout>
-      <StyledEditor onDragOver={() => setActiveDrop(true)} onDragLeave={() => setActiveDrop(false)} onDrop={onDropFile}>
-        <StyledActiveDrop className={`${activeDrop ? "active-drop" : ""}`}>
+      <StyledEditor onDragOver={() => setActiveDrop(true)} onDragLeave={() => setActiveDrop(false)} onDrop={(e)=>!state.isDragFromSidebar ? onDropFile(e) : setActiveDrop(false)}>
+        <StyledActiveDrop className={`${activeDrop && !state.isDragFromSidebar ? "active-drop" : ""}`}>
           <span>{lang.Dropfileshere}</span>
         </StyledActiveDrop>
         <Canvas className={`${isDragOverCanvas ? "over" : ""}`}>
@@ -815,7 +815,7 @@ const Editor = ({ data }) => {
               <Button className="w-100" variant="light" onClick={onExport}>{lang.Export}</Button>
             </Tab>
             <Tab name={lang.Assets}>
-              <ImagesSelector data={data.images} onSelect={(name, elm) => onSelect(name, false, elm)} onImageStartDrag={onImageStartDrag} onImageStopDrag={onImageStopDrag} />
+              <ImagesSelector data={images} onSelect={(name, elm) => onSelect(name, false, elm)} onImageStartDrag={onImageStartDrag} onImageStopDrag={onImageStopDrag} />
             </Tab>
             <Tab name={lang.Text}>
               <Label>{lang.FontFace}</Label>
