@@ -20,8 +20,7 @@ let configDev = {
               ]
             }
           ],
-        }
-
+        },
       },
       {
         test: /\.scss$/,
@@ -67,7 +66,12 @@ let configDev = {
       },
     ]
   },
-  resolve: { extensions: ["*", ".js", ".jsx"] },
+  resolve: { 
+    extensions: ["*", ".js", ".jsx"],
+    fallback: {
+      "crypto": false,
+    } 
+   },
   output: {
     path: path.resolve("./dist/assets"),
     publicPath: "/assets/",
@@ -147,7 +151,12 @@ let configProd = {
       }
     ]
   },
-  resolve: { extensions: ["*", ".js", ".jsx"] },
+  resolve: { 
+    extensions: ["*", ".js", ".jsx"],
+    fallback: {
+      "crypto": false,
+    } 
+   },
   output: {
     path: path.resolve("./dist/assets"),
     publicPath: "/assets/",

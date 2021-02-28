@@ -10,7 +10,6 @@ import ImagesSelector from "../../components/ImagesSelector";
 import { getExt } from "../../utils";
 import { fabricGif } from "../../utils/plugins/fabricGif";
 import 'fabric-history';
-import autoSave from "../../plugins/autosave";
 import languages from "../../configs/languages";
 import appConfig from "../../configs/appConfig";
 import Select from 'react-select';
@@ -65,11 +64,6 @@ const Editor = ({ data }) => {
     document.addEventListener('copy', onCopy);
     document.addEventListener('paste', onPaste);
 
-    AWSService.init(dispatchNotification);
-    AWSService.getObjects((data)=>{
-      setImages(data)
-    })
-
     return () => {
       window.removeEventListener('resize', resizeCanvas, false);
       document.removeEventListener('keyup', onKeyUp, false);
@@ -83,10 +77,17 @@ const Editor = ({ data }) => {
   }, [canvas]);
 
   const init = () => {
-    autoSave.init(canvas);
-    autoSave.getData();
+    AWSService.init(dispatchNotification, canvas);
+    AWSService.getObjects((data)=>{
+      setImages(data)
+    })
 
-    canvas.on('object:modified', () => { autoSave.save() });
+    AWSService.getCanvas();
+
+    canvas.on('object:modified', () => {
+      AWSService.saveCanvas();
+    });
+
     canvas.on('drop', onDrop);
     canvas.on('dragenter', () => setIsDragOverCanvas(true))
     canvas.on('dragleave', () => setIsDragOverCanvas(false));
@@ -95,7 +96,7 @@ const Editor = ({ data }) => {
       setSelected(e.target)
       setFilterTab(e.target);
       console.log(e.target);
-      autoSave.save();
+      AWSService.saveCanvas();
     }
     );
 
@@ -139,7 +140,7 @@ const Editor = ({ data }) => {
 
   const onUndo = () => canvas.undo()
   const onRedo = () => canvas.redo()
-  const onAdded = () => autoSave.save()
+  const onAdded = () => AWSService.saveCanvas(canvas)
 
   const onDrop = (e) => {
 
@@ -240,7 +241,7 @@ const Editor = ({ data }) => {
       }
     }
 
-    autoSave.save();
+    AWSService.saveCanvas();
   }
 
   const onHorizontalFlip = () => {
@@ -470,7 +471,7 @@ const Editor = ({ data }) => {
     obj.applyFilters();
     canvas.getActiveObject().height;
     canvas.renderAll();
-    autoSave.save();
+    AWSService.saveCanvas();
   }
 
   const removeFilter = (type) => {
@@ -501,7 +502,7 @@ const Editor = ({ data }) => {
     }
 
     if (!delayAutosave.current) {
-      autoSave.save();
+      AWSService.saveCanvas();
       delayAutosave.current = true;
 
       setTimeout(() => {

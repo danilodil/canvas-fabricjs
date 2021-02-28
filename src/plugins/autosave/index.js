@@ -34,6 +34,10 @@ const autoSave = {
     });
   },
 
+  getCanvas(){
+    return this.canvas;
+  },
+
   save() {
     try {
       localStorage.setItem('canvas', JSON.stringify(this.canvas));
