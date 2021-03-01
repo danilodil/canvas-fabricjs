@@ -5,8 +5,8 @@ import shortid from 'shortid';
 import { sortByDate } from "../../utils/index";
 const apigClientFactory = require('aws-api-gateway-client').default;
 
-const GET_API = 'https://ee7lhvle19.execute-api.us-east-2.amazonaws.com/test';
-const SAVE_API = 'https://q5d6od5pbh.execute-api.us-east-2.amazonaws.com/test';
+const GET_API = 'https://1p1obmckcd.execute-api.us-east-2.amazonaws.com/stage';
+const SAVE_API = 'https://0h1krltdak.execute-api.us-east-2.amazonaws.com/stage';
 
 const AWSService = {
 

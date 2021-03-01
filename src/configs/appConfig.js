@@ -2,9 +2,9 @@ const appConfig = {
   projectName: "Moodboard",
   lang: "eng",
   initialImageSize: 400,
-  albumBucketName: "canvas-moodboard",
+  albumBucketName: "moodboard",
   bucketRegion: "us-east-2",
-  IdentityPoolId: "us-east-2:101ce2a5-3444-4fe4-9520-baf0db9ab2d0",
+  IdentityPoolId: "us-east-2:a9926a9a-cd44-428f-8b4a-198ae59044eb",
   thumbnailWidthSize: 300,
   thumbnailWidthHeight: 300,
 
