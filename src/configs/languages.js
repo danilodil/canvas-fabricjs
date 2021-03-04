@@ -53,6 +53,7 @@ const languages = {
     Alpha: "Alpha",
     BlendImage: "Blend Image",
     Dropfileshere: "Drop files here",
+    Pleasechooseorfropfiles: "Please choose or drop files"
   }
 }
 

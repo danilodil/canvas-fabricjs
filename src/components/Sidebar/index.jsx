@@ -1,4 +1,4 @@
-import React, {useState} from "react";
+import React, {useState, useEffect} from "react";
 import { StyledSidebar, StyledSidebarClose, StyledSidebarShow } from "./StyledSidebar";
 import Icon from "../Icon";
 

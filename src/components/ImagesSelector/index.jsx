@@ -1,30 +1,30 @@
 import React, { useState, createRef, useContext, useEffect } from "react";
-import { StyledImagesSelector, StyledImage, StyledImagePreloader, StyledImageDrop } from "./StyledImagesSelector";
+import { StyledImagesSelector, StyledImage, StyledImagePreloader, StyledImageDrop, StyledImagContainer, StyledImageList } from "./StyledImagesSelector";
 import { getExt } from "../../utils";
 import ScrollBarWrapper from "../ScrollBarWrapper";
-import {Context} from "../../context/context";
+import { Context } from "../../context/context";
 import languages from "../../configs/languages";
 import appConfig from "../../configs/appConfig";
 
-const ImagesSelector = ({ onSelect, data, onImagesAdded, onImageStartDrag, onImageStopDrag }) => {
+const ImagesSelector = ({ onSelect, data, onImagesAdded, onImageStartDrag, onImageStopDrag, onFilesSelected }) => {
 
   const [imgRefs, setimgRefs] = useState(data?.map(() => createRef()));
-  const {notification, dispatchState} = useContext(Context);
+  const { notification, dispatchState } = useContext(Context);
   const lang = languages[appConfig.lang];
 
-  useEffect(()=>{
-    if(data) setimgRefs(data?.map(() => createRef()));
-  },[data])
+  useEffect(() => {
+    if (data) setimgRefs(data?.map(() => createRef()));
+  }, [data])
 
   const onDragStart = (e, i, name) => {
-    dispatchState({type:"SET_APP_VALUES", data:{isDragFromSidebar:true}})
+    dispatchState({ type: "SET_APP_VALUES", data: { isDragFromSidebar: true } })
     e.target.classList.add("draging");
     if (onImageStartDrag) onImageStartDrag(imgRefs[i].current, name);
   }
 
   const onDragEnd = (e, i, name) => {
     setTimeout(() => {
-      dispatchState({type:"SET_APP_VALUES", data:{isDragFromSidebar:false}})
+      dispatchState({ type: "SET_APP_VALUES", data: { isDragFromSidebar: false } })
     }, 1000);
     e.target.classList.remove("draging");
     if (onImageStopDrag) onImageStopDrag(imgRefs[i].current, name);
@@ -61,12 +61,17 @@ const ImagesSelector = ({ onSelect, data, onImagesAdded, onImageStartDrag, onIma
   }
 
   return (
-    <ScrollBarWrapper>
-      <StyledImagesSelector>
-        {notification.uploadImageProgress != 0 && <StyledImagePreloader value={notification.uploadImageProgress}/>}
-        {data?.length > 0 ? render() : <StyledImageDrop>{lang.Dropfileshere}</StyledImageDrop>}
-      </StyledImagesSelector>
-    </ScrollBarWrapper>
+    <StyledImagContainer>
+      <StyledImageDrop>{lang.Pleasechooseorfropfiles}<input onChange={onFilesSelected} type="file" name="files" multiple /></StyledImageDrop>
+      <StyledImageList>
+        <ScrollBarWrapper>
+          <StyledImagesSelector>
+            {notification.uploadImageProgress != 0 && <StyledImagePreloader value={notification.uploadImageProgress} />}
+            {data?.length > 0 && render()}
+          </StyledImagesSelector>
+        </ScrollBarWrapper>
+      </StyledImageList>
+    </StyledImagContainer>
   );
 }
 

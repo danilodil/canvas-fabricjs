@@ -25,7 +25,7 @@ import { Context } from "../../context/context";
 
 const Editor = ({ data }) => {
 
-  const {state, dispatchNotification} = useContext(Context);
+  const { state, dispatchNotification } = useContext(Context);
   const [canvas, setCanvas] = useState('');
   const canvasRef = useRef(null);
   const f = useRef(null);
@@ -43,9 +43,10 @@ const Editor = ({ data }) => {
   const [selectedFilters, setSelectedFilters] = useState(defaultFilters);
   const filersRef = useRef(null);
   const delayAutosave = useRef(false);
-  const [activeDrop, setActiveDrop] = useState(false);
   const [activeTab, setActiveTab] = useState(0);
   const [images, setImages] = useState([]);
+  const [activeDrop, setActiveDrop] = useState(false);
+  const isActiveDrop = useRef(false);
 
   useEffect(() => {
 
@@ -78,7 +79,7 @@ const Editor = ({ data }) => {
 
   const init = () => {
     AWSService.init(dispatchNotification, canvas);
-    AWSService.getObjects((data)=>{
+    AWSService.getObjects((data) => {
       setImages(data)
     })
 
@@ -171,17 +172,17 @@ const Editor = ({ data }) => {
 
       fabric.Image.fromURL(`${dragedImage.current.src}`, (img) => {
         img.scaleToWidth(appConfig.initialImageSize);
-        img.set({left:drag.layerX - appConfig.initialImageSize / 2, top: drag.layerY - appConfig.initialImageSize / 2})
+        img.set({ left: drag.layerX - appConfig.initialImageSize / 2, top: drag.layerY - appConfig.initialImageSize / 2 })
         canvas.add(img);
         onAdded();
-      }, {crossOrigin: 'anonymous'});
+      }, { crossOrigin: 'anonymous' });
 
     } else {
       fabric.Image.fromURL(`${e}`, (img) => {
         img.scaleToWidth(appConfig.initialImageSize);
         canvas.add(img);
         onAdded();
-      }, {crossOrigin: 'anonymous'});
+      }, { crossOrigin: 'anonymous' });
     }
   }
 
@@ -210,7 +211,8 @@ const Editor = ({ data }) => {
   }
 
   const onClear = () => {
-    canvas.clear().renderAll()
+    deleteObject();
+    AWSService.saveCanvas();
   }
 
   const getSelection = () => {
@@ -752,11 +754,16 @@ const Editor = ({ data }) => {
     e.preventDefault();
     setActiveDrop(false);
     setActiveTab(1);
+    isActiveDrop.current = false;
 
-    AWSService.addPhoto(e.dataTransfer.files).then(
+    uploadFiles(e.dataTransfer.files);
+  }
+
+  const uploadFiles = (files) => {
+    AWSService.addPhoto(files).then(
       (data) => {
         console.log("Successfully uploaded photo.");
-        AWSService.getObjects((data)=>{
+        AWSService.getObjects((data) => {
           setImages(data)
         })
       },
@@ -765,16 +772,32 @@ const Editor = ({ data }) => {
       })
   }
 
+  const onDragOver = (e) => {
+    if (!isActiveDrop.current) {
+      setActiveDrop(true);
+      isActiveDrop.current = true;
+    }
+  }
+
+  const onDragLeave = (e) => {
+    setActiveDrop(false)
+    isActiveDrop.current = false;
+  }
+
+  const onFilesSelected = (e) => {
+    uploadFiles(e.target.files);
+  }
+
   return (
     <Layout>
-      <StyledEditor  onDragOver={() => setActiveDrop(true)} onDragLeave={() => setActiveDrop(false)} onDrop={(e)=>!state.isDragFromSidebar ? onDropFile(e) : setActiveDrop(false)}>
+      <StyledEditor onDragOver={onDragOver} onDragLeave={onDragLeave} onDrop={(e) => !state.isDragFromSidebar ? onDropFile(e) : setActiveDrop(false)}>
         <StyledActiveDrop className={`${activeDrop && !state.isDragFromSidebar ? "active-drop" : ""}`}>
           <span>{lang.Dropfileshere}</span>
         </StyledActiveDrop>
         <Canvas className={`${isDragOverCanvas ? "over" : ""}`}>
           <canvas id="canvas" />
         </Canvas>
-        <Sidebar isActive={true} disabled={activeDrop}>
+        <Sidebar isActive={true} disabled={activeDrop} onDragOver={() => setActiveDrop(true)} onDragLeave={() => setActiveDrop(false)}>
           <Tabs activeTab={activeTab}>
             <Tab name={lang.Controls}>
               <TabActions>
@@ -815,7 +838,7 @@ const Editor = ({ data }) => {
               <Button className="w-100" variant="light" onClick={onExport}>{lang.Export}</Button>
             </Tab>
             <Tab name={lang.Assets}>
-              <ImagesSelector data={images} onSelect={(name, elm) => onSelect(name, false, elm)} onImageStartDrag={onImageStartDrag} onImageStopDrag={onImageStopDrag} />
+              <ImagesSelector onFilesSelected={onFilesSelected} data={images} onSelect={(name, elm) => onSelect(name, false, elm)} onImageStartDrag={onImageStartDrag} onImageStopDrag={onImageStopDrag} />
             </Tab>
             <Tab name={lang.Text}>
               <Label>{lang.FontFace}</Label>

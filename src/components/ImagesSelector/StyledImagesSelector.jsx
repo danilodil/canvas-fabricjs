@@ -5,6 +5,17 @@ export const StyledImagesSelector = styled.div`
   height: 100%;
 `
 
+export const StyledImagContainer = styled.div`
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+`
+
+export const StyledImageList = styled.div`
+  height: calc(100% - 80px);
+  margin-top: 20px;
+`
+
 export const StyledImage = styled.div`
   width: 100%;
   margin-bottom: 1rem;
@@ -71,13 +82,25 @@ export const StyledImagePreloader = styled.div`
   }
 `
 
-export const StyledImageDrop = styled.div`
+export const StyledImageDrop = styled.label`
   width: 100%;
-  height: 300px;
+  height: 60px;
   position: relative;
   padding: 2rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 1px dashed ${({theme}) => theme.colors.lgray};
+  cursor: pointer;
+  background-color: ${({theme}) => theme.colors.light};
+  border: 1px solid ${({ theme }) => theme.colors.light};
+  transition: background-color ${({ theme }) => theme.button.transition} ease, box-shadow ${({ theme }) => theme.button.transition} ease;
+  box-shadow: ${({ theme }) => theme.button.shadow};
+
+  &:hover {
+    background-color: transparent;
+  }
+
+  input {
+    display: none;
+  }
 `
