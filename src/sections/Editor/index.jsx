@@ -7,7 +7,7 @@ import { Tabs, Tab, TabActions } from "../../components/Tabs";
 import Button from "../../components/Button";
 import Icon from "../../components/Icon";
 import ImagesSelector from "../../components/ImagesSelector";
-import { getExt } from "../../utils";
+import { getExt, retrieveImageFromClipboardAsBase64, retrieveImageFromClipboard } from "../../utils";
 import { fabricGif } from "../../utils/plugins/fabricGif";
 import 'fabric-history';
 import languages from "../../configs/languages";
@@ -64,12 +64,14 @@ const Editor = ({ data }) => {
     document.addEventListener('keyup', onKeyUp, false);
     document.addEventListener('copy', onCopy);
     document.addEventListener('paste', onPaste);
+    window.addEventListener('paste', onWindowPaste, false);
 
     return () => {
       window.removeEventListener('resize', resizeCanvas, false);
       document.removeEventListener('keyup', onKeyUp, false);
       document.removeEventListener('copy', onCopy, false);
       document.removeEventListener('paste', onPaste, false);
+      window.removeEventListener('paste', onWindowPaste, false);
     }
   }, []);
 
@@ -169,18 +171,17 @@ const Editor = ({ data }) => {
 
   const addImg = (e, drag) => {
     if (drag) {
-
       fabric.Image.fromURL(`${dragedImage.current.src}`, (img) => {
         img.scaleToWidth(appConfig.initialImageSize);
         img.set({ left: drag.layerX - appConfig.initialImageSize / 2, top: drag.layerY - appConfig.initialImageSize / 2 })
-        canvas.add(img);
+        canvasRef.current.add(img);
         onAdded();
       }, { crossOrigin: 'anonymous' });
 
     } else {
       fabric.Image.fromURL(`${e}`, (img) => {
         img.scaleToWidth(appConfig.initialImageSize);
-        canvas.add(img);
+        canvasRef.current.add(img);
         onAdded();
       }, { crossOrigin: 'anonymous' });
     }
@@ -341,26 +342,47 @@ const Editor = ({ data }) => {
   }
 
   const onPaste = () => {
-    clone.current.clone(function (clonedObj) {
-      canvasRef.current.discardActiveObject();
-      clonedObj.set({
-        left: clonedObj.left + 10,
-        top: clonedObj.top + 10,
-        evented: true,
-      });
-      if (clonedObj.type === 'activeSelection') {
-        clonedObj.canvas = canvasRef.current;
-        clonedObj.forEachObject(function (obj) {
-          canvasRef.current.add(obj);
+    if (clone.current) {
+      clone.current.clone(function (clonedObj) {
+        canvasRef.current.discardActiveObject();
+        clonedObj.set({
+          left: clonedObj.left + 10,
+          top: clonedObj.top + 10,
+          evented: true,
         });
-        clonedObj.setCoords();
-      } else {
-        canvasRef.current.add(clonedObj);
+        if (clonedObj.type === 'activeSelection') {
+          clonedObj.canvas = canvasRef.current;
+          clonedObj.forEachObject(function (obj) {
+            canvasRef.current.add(obj);
+          });
+          clonedObj.setCoords();
+        } else {
+          canvasRef.current.add(clonedObj);
+        }
+        clone.current.top += 10;
+        clone.current.left += 10;
+        canvasRef.current.setActiveObject(clonedObj);
+        canvasRef.current.requestRenderAll();
+      });
+    }
+  }
+
+  const onWindowPaste = (e) => {
+    retrieveImageFromClipboard(e, (image) => {
+      if (image) {
+        setActiveTab(1);
+
+        AWSService.addPhoto([image]).then(
+          (data) => {
+            AWSService.getObjects((data) => {
+              addImg(data[0].src);
+              setImages(data)
+            })
+          },
+          (err) => {
+            return console.log("There was an error uploading your photo: ", err.message);
+          })
       }
-      clone.current.top += 10;
-      clone.current.left += 10;
-      canvasRef.current.setActiveObject(clonedObj);
-      canvasRef.current.requestRenderAll();
     });
   }
 
@@ -780,7 +802,7 @@ const Editor = ({ data }) => {
   }
 
   const onDragLeave = (e) => {
-    if(!e.target.closest(".sidebar")) {
+    if (!e.target.closest(".sidebar")) {
       setActiveDrop(false)
       isActiveDrop.current = false;
     }

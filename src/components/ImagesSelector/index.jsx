@@ -13,7 +13,9 @@ const ImagesSelector = ({ onSelect, data, onImagesAdded, onImageStartDrag, onIma
   const lang = languages[appConfig.lang];
 
   useEffect(() => {
-    if (data) setimgRefs(data?.map(() => createRef()));
+    if (data) {
+      setimgRefs(data?.map(() => createRef()));
+    }
   }, [data])
 
   const onDragStart = (e, i, name) => {

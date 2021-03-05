@@ -4,6 +4,7 @@ import appConfig from "../../configs/appConfig";
 import shortid from 'shortid';
 import { sortByDate } from "../../utils/index";
 const apigClientFactory = require('aws-api-gateway-client').default;
+import { getExt } from "../../utils";
 
 const GET_API = 'https://1p1obmckcd.execute-api.us-east-2.amazonaws.com/stage';
 const SAVE_API = 'https://0h1krltdak.execute-api.us-east-2.amazonaws.com/stage';
@@ -50,7 +51,8 @@ const AWSService = {
 
     Array.from(files).forEach((f, i) => {
       const file = f;
-      const fileName = file.name;
+      const ext = getExt(file.name);
+      const fileName = `${shortid.generate()}.${ext}`;
       const albumPhotosKey = encodeURIComponent(this.id) + "/";
 
       const photoKey = albumPhotosKey + fileName;
