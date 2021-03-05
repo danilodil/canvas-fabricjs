@@ -5,6 +5,14 @@ export default function (state, action) {
         ...state,
         ...action.data
       }
+    case 'SET_PROGRESS':
+      const current = [...state.uploadImagesProgress];
+      current[action.data.index] = action.data.progress;
+
+      return {
+        ...state,
+        uploadImagesProgress: current
+      }
     default:
       return state;
   }

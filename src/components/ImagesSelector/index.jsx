@@ -66,7 +66,9 @@ const ImagesSelector = ({ onSelect, data, onImagesAdded, onImageStartDrag, onIma
       <StyledImageList>
         <ScrollBarWrapper>
           <StyledImagesSelector>
-            {notification.uploadImageProgress != 0 && <StyledImagePreloader value={notification.uploadImageProgress} />}
+            {notification.uploadImagesProgress && notification.uploadImagesProgress.map((prgr, i) => (
+              prgr > 0 && <StyledImagePreloader key={`pri-${i}`} value={prgr} />
+            ))}
             {data?.length > 0 && render()}
           </StyledImagesSelector>
         </ScrollBarWrapper>

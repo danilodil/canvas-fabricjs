@@ -13,9 +13,10 @@ const AWSService = {
   s3: null,
   id: null,
   dispatch: null,
+  notification: null,
   canvas: null,
 
-  init(dispatch, canvas) {
+  init(dispatch, canvas, notification) {
     AWS.config.update({
       region: appConfig.bucketRegion,
       credentials: new AWS.CognitoIdentityCredentials({
@@ -36,6 +37,7 @@ const AWSService = {
 
     this.dispatch = dispatch;
     this.canvas = canvas;
+    this.notification = notification;
 
   },
 
@@ -43,35 +45,42 @@ const AWSService = {
     if (!files.length) {
       return console.log("Please choose a file to upload first.");
     }
-    const file = files[0];
-    const fileName = file.name;
-    const albumPhotosKey = encodeURIComponent(this.id) + "/";
 
-    const photoKey = albumPhotosKey + fileName;
+    const promises = [];
 
-    // Use S3 ManagedUpload class as it supports multipart uploads
-    const upload = new AWS.S3.ManagedUpload({
-      params: {
-        Bucket: appConfig.albumBucketName,
-        Key: photoKey,
-        Body: file
-      }
-    }).on('httpUploadProgress', (evt) => {
+    Array.from(files).forEach((f, i) => {
+      const file = f;
+      const fileName = file.name;
+      const albumPhotosKey = encodeURIComponent(this.id) + "/";
 
-      const p = parseInt((evt.loaded * 100) / evt.total);
+      const photoKey = albumPhotosKey + fileName;
 
-      this.dispatch({ type: "SET_VALUES", data: { uploadImageProgress: p } });
+      // Use S3 ManagedUpload class as it supports multipart uploads
+      const upload = new AWS.S3.ManagedUpload({
+        params: {
+          Bucket: appConfig.albumBucketName,
+          Key: photoKey,
+          Body: file
+        }
+      }).on('httpUploadProgress', (evt) => {
 
-      if (p == 100) {
-        setTimeout(() => {
-          this.dispatch({ type: "SET_VALUES", data: { uploadImageProgress: 0 } });
-        }, 100);
-      }
+        const p = parseInt((evt.loaded * 100) / evt.total);
+
+        this.dispatch({ type: "SET_PROGRESS", data: {progress:p, index: i} });
+
+        if (p == 100) {
+          setTimeout(() => {
+            this.dispatch({ type: "SET_PROGRESS", data: {progress:0, index: i} });
+          }, 100);
+        }
+      });
+
+      promises.push(upload.promise());
+    })
+
+    return Promise.all(promises).then(()=>{
+      this.dispatch({ type: "SET_VALUES", data: { uploadImagesProgress: []} });
     });
-
-    const promise = upload.promise();
-
-    return promise;
   },
 
   getObjects(callback) {

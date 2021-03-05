@@ -27,7 +27,7 @@ const App = () => {
   });
 
   const [notification, dispatchNotification] = useReducer(reducerNotification, {
-    uploadImageProgress: 0,
+    uploadImagesProgress: [],
   });
 
   const [components, setComponents] = useState([]);
