@@ -7,7 +7,7 @@ const Sedebar = ({ isActive, children, disabled }) => {
   const [active, setActive] = useState(isActive);
 
   return (
-    <StyledSidebar className={`${disabled ? "disabled" : ""}`} isActive={active}>
+    <StyledSidebar className={`sidebar ${disabled ? "disabled" : ""}`} isActive={active}>
       <StyledSidebarClose onClick={()=>setActive(!active)}><Icon variant="close" /></StyledSidebarClose>
       <StyledSidebarShow isActive={!active} onClick={()=>setActive(!active)}><Icon variant="chevron-left" /></StyledSidebarShow>
       {children}

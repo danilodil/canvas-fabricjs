@@ -780,8 +780,10 @@ const Editor = ({ data }) => {
   }
 
   const onDragLeave = (e) => {
-    setActiveDrop(false)
-    isActiveDrop.current = false;
+    if(!e.target.closest(".sidebar")) {
+      setActiveDrop(false)
+      isActiveDrop.current = false;
+    }
   }
 
   const onFilesSelected = (e) => {
@@ -797,7 +799,7 @@ const Editor = ({ data }) => {
         <Canvas className={`${isDragOverCanvas ? "over" : ""}`}>
           <canvas id="canvas" />
         </Canvas>
-        <Sidebar isActive={true} disabled={activeDrop} onDragOver={() => setActiveDrop(true)} onDragLeave={() => setActiveDrop(false)}>
+        <Sidebar isActive={true} disabled={activeDrop} onDragOver={() => setActiveDrop(true)}>
           <Tabs activeTab={activeTab}>
             <Tab name={lang.Controls}>
               <TabActions>
