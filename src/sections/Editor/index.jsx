@@ -99,6 +99,7 @@ const Editor = ({ data }) => {
       setSelected(e.target)
       setFilterTab(e.target);
       console.log(e.target);
+      //console.log(canvasRef.current);
       AWSService.saveCanvas();
     }
     );
@@ -162,11 +163,14 @@ const Editor = ({ data }) => {
     return false;
   }
 
-  const addGif = async (e, drag) => {
-    const gif = await fabricGif(drag ? e.src : `${e}`, appConfig.initialImageSize / 2, appConfig.initialImageSize / 2);
-    gif.set({ top: drag ? drag.layerY - appConfig.initialImageSize / 4 : 50, left: drag ? drag.layerX - appConfig.initialImageSize / 4 : 50 });
-    canvas.add(gif);
-    onAdded();
+  const addGif = (e, drag) => {
+    fabricGif(drag ? e.src : `${e}`, appConfig.initialImageSize / 2, appConfig.initialImageSize / 2).then((gif) => {
+      gif.set({ top: drag ? drag.layerY - appConfig.initialImageSize / 4 : 50, left: drag ? drag.layerX - appConfig.initialImageSize / 4 : 50 });
+      gif.set("orig_src", drag ? e.src : `${e}`)
+
+      canvas.add(gif);
+      onAdded();
+    });
   }
 
   const addImg = (e, drag) => {
@@ -540,14 +544,14 @@ const Editor = ({ data }) => {
     const imageElement = document.createElement('img');
     imageElement.src = `../assets/img/splash.png`;
 
-    imageElement.onload = ()=>{
+    imageElement.onload = () => {
       const fImage = new fabric.Image(imageElement);
       fImage.scaleX = 1;
       fImage.scaleY = 1;
       fImage.top = 15;
       fImage.left = 15;
 
-      if(callback) callback(fImage);
+      if (callback) callback(fImage);
     }
   }
 
@@ -578,7 +582,7 @@ const Editor = ({ data }) => {
 
       case "BlendImage":
 
-        getImage((img)=>{
+        getImage((img) => {
           applyFilter(name, checked && getFilterByName(name, {
             image: img,
             mode: filt.mode,

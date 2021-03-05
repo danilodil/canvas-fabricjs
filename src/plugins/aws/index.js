@@ -5,6 +5,7 @@ import shortid from 'shortid';
 import { sortByDate } from "../../utils/index";
 const apigClientFactory = require('aws-api-gateway-client').default;
 import { getExt } from "../../utils";
+import { fabricGif } from "../../utils/plugins/fabricGif";
 
 const GET_API = 'https://1p1obmckcd.execute-api.us-east-2.amazonaws.com/stage';
 const SAVE_API = 'https://0h1krltdak.execute-api.us-east-2.amazonaws.com/stage';
@@ -68,11 +69,11 @@ const AWSService = {
 
         const p = parseInt((evt.loaded * 100) / evt.total);
 
-        this.dispatch({ type: "SET_PROGRESS", data: {progress:p, index: i} });
+        this.dispatch({ type: "SET_PROGRESS", data: { progress: p, index: i } });
 
         if (p == 100) {
           setTimeout(() => {
-            this.dispatch({ type: "SET_PROGRESS", data: {progress:0, index: i} });
+            this.dispatch({ type: "SET_PROGRESS", data: { progress: 0, index: i } });
           }, 100);
         }
       });
@@ -80,8 +81,8 @@ const AWSService = {
       promises.push(upload.promise());
     })
 
-    return Promise.all(promises).then(()=>{
-      this.dispatch({ type: "SET_VALUES", data: { uploadImagesProgress: []} });
+    return Promise.all(promises).then(() => {
+      this.dispatch({ type: "SET_VALUES", data: { uploadImagesProgress: [] } });
     });
   },
 
@@ -109,10 +110,22 @@ const AWSService = {
   saveCanvas() {
     const config = { invokeUrl: SAVE_API }
     const apigClient = apigClientFactory.newClient(config);
+    let _canvas = this.canvas.toJSON(["orig_src"]);
+
+    _canvas.objects = _canvas.objects.map((object)=>{
+      if(object.orig_src) {
+        const src = object.orig_src;
+        delete object.orig_src;
+
+        return {...object, src:src}
+      }else {
+        return object;
+      }
+    })
 
     const body = {
       "id": this.id,
-      "canvas": JSON.stringify(this.canvas)
+      "canvas": JSON.stringify(_canvas)
     };
 
     const additionalParams = {}
@@ -145,6 +158,26 @@ const AWSService = {
       this.canvas.clear().renderAll();
       this.canvas.loadFromJSON(result.data.Item.USER_CANVAS.S, () => {
         this.canvas.renderAll();
+
+        this.canvas._objects.map((object) => {
+          const src = object.src;
+          const ext = getExt(src);
+          const top = object.top;
+          const left = object.left;
+          const width =  object.getScaledWidth();
+          const height =  object.getScaledHeight();
+
+
+          if(ext == "gif") {
+            this.canvas.remove(object);
+
+            fabricGif(src, width, height).then((gif) => {
+              gif.set({ top: top, left: left });
+              gif.set("orig_src", src)
+              this.canvas.add(gif);
+            });
+          }
+        })
       });
     }).catch((result) => {
       console.log(result)
