@@ -535,17 +535,20 @@ const Editor = ({ data }) => {
     }
   }
 
-  const getImage = () => {
+  const getImage = (callback) => {
 
     const imageElement = document.createElement('img');
     imageElement.src = `../assets/img/splash.png`;
-    const fImage = new fabric.Image(imageElement);
-    fImage.scaleX = 1;
-    fImage.scaleY = 1;
-    fImage.top = 15;
-    fImage.left = 15;
 
-    return fImage;
+    imageElement.onload = ()=>{
+      const fImage = new fabric.Image(imageElement);
+      fImage.scaleX = 1;
+      fImage.scaleY = 1;
+      fImage.top = 15;
+      fImage.left = 15;
+
+      if(callback) callback(fImage);
+    }
   }
 
   const onChangeFilter = (e) => {
@@ -575,11 +578,13 @@ const Editor = ({ data }) => {
 
       case "BlendImage":
 
-        applyFilter(name, checked && getFilterByName(name, {
-          image: getImage(),
-          mode: filt.mode,
-          alpha: filt.alpha,
-        }));
+        getImage((img)=>{
+          applyFilter(name, checked && getFilterByName(name, {
+            image: img,
+            mode: filt.mode,
+            alpha: filt.alpha,
+          }));
+        });
 
         break;
 
