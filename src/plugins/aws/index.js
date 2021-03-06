@@ -159,8 +159,6 @@ const AWSService = {
       this.canvas.loadFromJSON(result.data.Item.USER_CANVAS.S, () => {
         this.canvas.renderAll();
 
-        console.log(this.canvas._objects)
-
         this.canvas._objects.map((object) => {
           const src = object.src ? object.src : object.video_src;
           const ext = src ? getExt(src) : null;
