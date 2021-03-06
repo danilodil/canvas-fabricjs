@@ -110,3 +110,35 @@ export const retrieveImageFromClipboard = (pasteEvent, callback) => {
     }
   }
 }
+
+export const getVideoElement = (url, width, height) => {
+  const videoE = document.createElement('video');
+  videoE.loop = true;
+  videoE.width = width;
+  videoE.height = height;
+  videoE.muted = "muted";
+  videoE.autoplay = true;
+  videoE.crossOrigin = "anonymous";
+  const source = document.createElement('source');
+  source.src = url;
+  source.type = 'video/mp4';
+  videoE.appendChild(source);
+  return videoE;
+}
+
+export const getVideoDimensionsOf = (url) => {
+  return new Promise(function (resolve) {
+    let video = document.createElement('video');
+    video.addEventListener("loadedmetadata", function () {
+      let height = this.videoHeight;
+      let width = this.videoWidth;
+      
+      resolve({
+        videoHeight: height,
+        videoWidth: width
+      });
+    }, false);
+
+    video.src = url;
+  });
+}

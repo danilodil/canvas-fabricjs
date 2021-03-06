@@ -4,7 +4,7 @@ import appConfig from "../../configs/appConfig";
 import shortid from 'shortid';
 import { sortByDate } from "../../utils/index";
 const apigClientFactory = require('aws-api-gateway-client').default;
-import { getExt } from "../../utils";
+import { getExt, getVideoElement, getVideoDimensionsOf } from "../../utils";
 import { fabricGif } from "../../utils/plugins/fabricGif";
 
 const GET_API = 'https://1p1obmckcd.execute-api.us-east-2.amazonaws.com/stage';
@@ -112,13 +112,13 @@ const AWSService = {
     const apigClient = apigClientFactory.newClient(config);
     let _canvas = this.canvas.toJSON(["orig_src"]);
 
-    _canvas.objects = _canvas.objects.map((object)=>{
-      if(object.orig_src) {
+    _canvas.objects = _canvas.objects.map((object) => {
+      if (object.orig_src) {
         const src = object.orig_src;
         delete object.orig_src;
 
-        return {...object, src:src}
-      }else {
+        return { ...object, src: src }
+      } else {
         return object;
       }
     })
@@ -159,16 +159,41 @@ const AWSService = {
       this.canvas.loadFromJSON(result.data.Item.USER_CANVAS.S, () => {
         this.canvas.renderAll();
 
+        console.log(this.canvas._objects)
+
         this.canvas._objects.map((object) => {
-          const src = object.src;
-          const ext = getExt(src);
+          const src = object.src ? object.src : object.video_src;
+          const ext = src ? getExt(src) : null;
           const top = object.top;
           const left = object.left;
-          const width =  object.getScaledWidth();
-          const height =  object.getScaledHeight();
+          const width = object.getScaledWidth();
+          const height = object.getScaledHeight();
 
+          if (ext == "mp4") {
+            const videoSrc = src;
+            this.canvas.remove(object);
 
-          if(ext == "gif") {
+            getVideoDimensionsOf(videoSrc)
+              .then(({ videoWidth, videoHeight }) => {
+                const videoE = getVideoElement(videoSrc, videoWidth, videoHeight);
+                const fab_video = new fabric.Image(videoE, { left: left, top: top, name: 'video' });
+                fab_video.set('video_src', videoSrc);
+                fab_video.scaleToWidth(width);
+                this.canvas.add(fab_video);
+                fab_video.getElement().play();
+              });
+          }
+        })
+
+        this.canvas._objects.map((object) => {
+          const src = object.src ? object.src : object.video_src;
+          const ext = src ? getExt(src) : null;
+          const top = object.top;
+          const left = object.left;
+          const width = object.getScaledWidth();
+          const height = object.getScaledHeight();
+
+          if (ext == "gif") {
             this.canvas.remove(object);
 
             fabricGif(src, width, height).then((gif) => {

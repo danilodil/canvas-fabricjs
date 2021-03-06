@@ -7,7 +7,7 @@ import { Tabs, Tab, TabActions } from "../../components/Tabs";
 import Button from "../../components/Button";
 import Icon from "../../components/Icon";
 import ImagesSelector from "../../components/ImagesSelector";
-import { getExt, retrieveImageFromClipboardAsBase64, retrieveImageFromClipboard } from "../../utils";
+import { getExt, retrieveImageFromClipboard, getVideoElement } from "../../utils";
 import { fabricGif } from "../../utils/plugins/fabricGif";
 import 'fabric-history';
 import languages from "../../configs/languages";
@@ -193,21 +193,8 @@ const Editor = ({ data }) => {
 
   const addVideo = (url_mp4, elm, drag) => {
 
-    function getVideoElement(url) {
-      var videoE = document.createElement('video');
-      videoE.loop = true;
-      videoE.width = elm.videoWidth;
-      videoE.height = elm.videoHeight;
-      videoE.muted = false;
-      videoE.crossOrigin = "anonymous";
-      var source = document.createElement('source');
-      source.src = url;
-      source.type = 'video/mp4';
-      videoE.appendChild(source);
-      return videoE;
-    }
-    var videoE = getVideoElement(url_mp4);
-    var fab_video = new fabric.Image(videoE, { left: drag ? drag.layerX - appConfig.initialImageSize / 2 : 0, top: drag ? drag.layerY - appConfig.initialImageSize / 2 : 0, name: 'video' });
+    const videoE = getVideoElement(url_mp4, elm.videoWidth, elm.videoHeight);
+    const fab_video = new fabric.Image(videoE, { left: drag ? drag.layerX - appConfig.initialImageSize / 2 : 0, top: drag ? drag.layerY - appConfig.initialImageSize / 2 : 0, name: 'video' });
     fab_video.set('video_src', url_mp4);
     fab_video.scaleToWidth(appConfig.initialImageSize);
     canvas.add(fab_video);
